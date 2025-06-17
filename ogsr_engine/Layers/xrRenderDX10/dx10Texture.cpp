@@ -152,8 +152,7 @@ ID3DBaseTexture* CRender::texture_load(LPCSTR fRName, u32& ret_msize)
             IMG.height = (IMG.height + 3u) & ~0x3u;
         }
 
-        const auto hr = CreateTextureEx(HW.pDevice, texture.GetImages() + mip_lod, texture.GetImageCount(), IMG, D3D_USAGE_IMMUTABLE, D3D_BIND_SHADER_RESOURCE, 0, IMG.miscFlags,
-                                        DirectX::CREATETEX_DEFAULT, &pTexture2D);
+        const auto hr = CreateTextureEx(HW.pDevice, texture.GetImages() + mip_lod, texture.GetImageCount(), IMG, D3D_USAGE_IMMUTABLE, D3D_BIND_SHADER_RESOURCE, 0, IMG.miscFlags, DirectX::CREATETEX_DEFAULT, &pTexture2D);
 
         if (SUCCEEDED(hr))
         {
@@ -172,7 +171,8 @@ ID3DBaseTexture* CRender::texture_load(LPCSTR fRName, u32& ret_msize)
         // Давай заново, с конвертацией текстур. Может помочь.
         dds_flags |= DirectX::DDS_FLAGS::DDS_FLAGS_NO_16BPP | DirectX::DDS_FLAGS_FORCE_RGB;
         allowFallback = false;
-    } while (true);
+    } 
+	while (true);
 
     FS.r_close(File);
 

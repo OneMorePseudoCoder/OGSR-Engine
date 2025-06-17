@@ -13,8 +13,7 @@
 namespace text_editor
 {
 	base::base() : m_previous_action(NULL)
-	{
-	}
+	{}
 
 	base::~base()
 	{
@@ -43,8 +42,7 @@ namespace text_editor
 	}
 
 	callback_base::~callback_base()
-	{
-	}
+	{}
 
 	void callback_base::on_key_press(line_edit_control* const control)
 	{

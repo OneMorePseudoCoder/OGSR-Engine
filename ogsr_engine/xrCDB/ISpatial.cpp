@@ -16,8 +16,6 @@ ISpatial_DB* g_SpatialSpacePhysic = nullptr;
 //////////////////////////////////////////////////////////////////////////
 ISpatial::ISpatial(ISpatial_DB* space)
 {
-    //R_ASSERT(space);
-
     spatial.sphere.P.set(0, 0, 0);
     spatial.sphere.R = 0;
     spatial.node_center.set(0, 0, 0);
@@ -178,7 +176,7 @@ void ISpatial_DB::initialize(Fbox& BB)
         bbd.y = std::max(bbd.y, 1024.f);
         bbd.z = std::max(bbd.z, 1024.f);
 
-        allocator_pool.reserve(128);
+        allocator_pool.reserve(256);
         m_center.set(bbc);
         m_bounds = std::max(std::max(bbd.x, bbd.y), bbd.z);
         rt_insert_object = nullptr;
@@ -198,6 +196,7 @@ ISpatial_NODE* ISpatial_DB::_node_create()
     allocator_pool.pop_back();
     return N;
 }
+
 void ISpatial_DB::_node_destroy(ISpatial_NODE*& P)
 {
     VERIFY(P->_empty());
@@ -300,15 +299,6 @@ void ISpatial_DB::insert(ISpatial* S)
         {
             // Object outside our DB, put it into root node and hack bounds
             // Object will reinsert itself until fits into "real", "controlled" space
-
-            /*
-            if (0 == m_root)	// KD: временная затычка - непонятно, почему может не быть кости
-            {
-                m_root = _node_create();
-                m_root->_init(NULL);
-            }
-            */
-
             m_root->_insert(S);
             S->spatial.node_center.set(m_center);
             S->spatial.node_radius = m_bounds;

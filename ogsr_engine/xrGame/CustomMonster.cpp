@@ -66,20 +66,11 @@ void CCustomMonster::SAnimState::Create(IKinematicsAnimated* K, LPCSTR base)
     rs = K->ID_Cycle_Safe(strconcat(sizeof(buf), buf, base, "_rs"));
 }
 
-// void __stdcall CCustomMonster::TorsoSpinCallback(CBoneInstance* B)
-//{
-//	CCustomMonster*		M = static_cast<CCustomMonster*> (B->callback_param());
-//
-//	Fmatrix					spin;
-//	spin.setXYZ				(0, M->NET_Last.o_torso.pitch, 0);
-//	B->mTransform.mulB_43	(spin);
-// }
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CCustomMonster::CCustomMonster()
+CCustomMonster::CCustomMonster() : Feel::Vision(cast_game_object())
 {
     m_sound_user_data_visitor = 0;
     m_memory_manager = 0;
@@ -117,63 +108,13 @@ void CCustomMonster::Load(LPCSTR section)
     material().Load(section);
     memory().Load(section);
     movement().Load(section);
-    //////////////////////////////////////////////////////////////////////////
-
-    ///////////
-    // m_PhysicMovementControl: General
 
     character_physics_support()->movement()->Load(section);
-    // Fbox	bb;
-
-    //// m_PhysicMovementControl: BOX
-    // Fvector	vBOX0_center= pSettings->r_fvector3	(section,"ph_box0_center"	);
-    // Fvector	vBOX0_size	= pSettings->r_fvector3	(section,"ph_box0_size"		);
-    // bb.set	(vBOX0_center,vBOX0_center); bb.grow(vBOX0_size);
-    // m_PhysicMovementControl->SetBox		(0,bb);
-
-    //// m_PhysicMovementControl: BOX
-    // Fvector	vBOX1_center= pSettings->r_fvector3	(section,"ph_box1_center"	);
-    // Fvector	vBOX1_size	= pSettings->r_fvector3	(section,"ph_box1_size"		);
-    // bb.set	(vBOX1_center,vBOX1_center); bb.grow(vBOX1_size);
-    // m_PhysicMovementControl->SetBox		(1,bb);
-
-    //// m_PhysicMovementControl: Foots
-    // Fvector	vFOOT_center= pSettings->r_fvector3	(section,"ph_foot_center"	);
-    // Fvector	vFOOT_size	= pSettings->r_fvector3	(section,"ph_foot_size"		);
-    // bb.set	(vFOOT_center,vFOOT_center); bb.grow(vFOOT_size);
-    // m_PhysicMovementControl->SetFoots	(vFOOT_center,vFOOT_size);
-
-    //// m_PhysicMovementControl: Crash speed and mass
-    // float	cs_min		= pSettings->r_float	(section,"ph_crash_speed_min"	);
-    // float	cs_max		= pSettings->r_float	(section,"ph_crash_speed_max"	);
-    // float	mass		= pSettings->r_float	(section,"ph_mass"				);
-    // m_PhysicMovementControl->SetCrashSpeeds	(cs_min,cs_max);
-    // m_PhysicMovementControl->SetMass		(mass);
-
-    // m_PhysicMovementControl: Frictions
-    /*
-    float af, gf, wf;
-    af					= pSettings->r_float	(section,"ph_friction_air"	);
-    gf					= pSettings->r_float	(section,"ph_friction_ground");
-    wf					= pSettings->r_float	(section,"ph_friction_wall"	);
-    m_PhysicMovementControl->SetFriction	(af,wf,gf);
-
-    // BOX activate
-    m_PhysicMovementControl->ActivateBox	(0);
-    */
-    ////////
 
     Position().y += EPS_L;
 
-    //	m_current			= 0;
-
     eye_fov = pSettings->r_float(section, "eye_fov");
     eye_range = pSettings->r_float(section, "eye_range");
-
-    // Health & Armor
-    //	fArmor					= 0;
-
-    // Msg				("! cmonster size: %d",sizeof(*this));
 
     m_anomaly_detector->load(section);
 }
@@ -328,20 +269,7 @@ void CCustomMonster::shedule_Update(u32 DT)
         {
             Exec_Action(dt);
             VERIFY(_valid(Position()));
-            // Exec_Visibility		();
             VERIFY(_valid(Position()));
-            //////////////////////////////////////
-            // Fvector C; float R;
-            //////////////////////////////////////
-            // С Олеся - ПИВО!!!! (Диме :-))))
-            // m_PhysicMovementControl->GetBoundingSphere	(C,R);
-            //////////////////////////////////////
-            // Center(C);
-            // R = Radius();
-            //////////////////////////////////////
-            /// #pragma todo("Oles to all AI guys: perf/logical problem: Only few objects needs 'feel_touch' why to call update for everybody?")
-            ///			feel_touch_update		(C,R);
-
             net_update uNext;
             uNext.dwTimeStamp = Level().timeServer();
             uNext.o_model = movement().m_body.current.yaw;
@@ -386,15 +314,6 @@ void CCustomMonster::UpdateCL()
     STOP_PROFILE
 
     CScriptEntity::process_sound_callbacks();
-
-    /*	//. hack just to skip 'CalculateBones'
-    if (sound().need_bone_data()) {
-        // we do this because we know here would be virtual function call
-        IKinematics					*kinematics = smart_cast<IKinematics*>(Visual());
-        VERIFY						(kinematics);
-        kinematics->CalculateBones	();
-    }
-    */
 
     if (g_mt_config.test(mtSoundPlayer))
         Device.add_to_seq_parallel(fastdelegate::MakeDelegate(this, &CCustomMonster::update_sound_player));
@@ -573,7 +492,6 @@ void CCustomMonster::eye_pp_s2()
 
 void CCustomMonster::Exec_Visibility()
 {
-    // if (0==Sector())				return;
     if (!g_Alive())
         return;
 
@@ -605,7 +523,6 @@ void CCustomMonster::HitSignal(float /**perc/**/, Fvector& /**vLocalDir/**/, COb
 void CCustomMonster::Die(CObject* who)
 {
     inherited::Die(who);
-    // Level().RemoveMapLocationByID(this->ID());
     Actor()->SetActorVisibility(ID(), 0.f);
 }
 
@@ -636,7 +553,6 @@ BOOL CCustomMonster::net_Spawn(CSE_Abstract* DC)
     if (!g_Alive())
     {
         set_death_time();
-        //		Msg						("%6d : Object [%d][%s][%s] is spawned DEAD",Device.dwTimeGlobal,ID(),*cName(),*cNameSect());
     }
 
     if (ai().get_level_graph() && UsedAI_Locations() && (e->ID_Parent == 0xffff))
@@ -690,7 +606,6 @@ BOOL CCustomMonster::net_Spawn(CSE_Abstract* DC)
 
 void CCustomMonster::Exec_Action(float /**dt/**/) {}
 
-// void CCustomMonster::Hit(float P, Fvector &dir,CObject* who, s16 element,Fvector position_in_object_space, float impulse, ALife::EHitType hit_type)
 void CCustomMonster::Hit(SHit* pHDS)
 {
     if (!invulnerable())
@@ -779,7 +694,9 @@ void CCustomMonster::load_killer_clsids(LPCSTR section)
     m_killer_clsids.clear();
     LPCSTR killers = pSettings->r_string(section, "killer_clsids");
     string16 temp;
-    for (u32 i = 0, n = _GetItemCount(killers); i < n; ++i)
+    const u32 n = _GetItemCount(killers);
+    m_killer_clsids.reserve(n);
+    for (u32 i = 0; i < n; i++)
         m_killer_clsids.push_back(TEXT2CLSID(_GetItem(killers, i, temp)));
 }
 
@@ -1080,6 +997,7 @@ void CCustomMonster::ForceTransform(const Fmatrix& m)
 {
     if (!g_Alive())
         return;
+
     XFORM().set(m);
 
     if (character_physics_support()->movement()->CharacterExist())

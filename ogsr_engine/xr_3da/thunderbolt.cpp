@@ -55,13 +55,6 @@ void SThunderboltDesc::load(CInifile& pIni, shared_str const& sect)
     m_name = pIni.r_string(sect, "lightning_model");
     m_pRender->CreateModel(m_name);
 
-    /*
-    IReader* F			= 0;
-    F					= FS.r_open("$game_meshes$",m_name); R_ASSERT2(F,"Empty 'lightning_model'.");
-    l_model				= ::Render->model_CreateDM(F);
-    FS.r_close			(F);
-    */
-
     // sound
     m_name = pIni.r_string(sect, "sound");
     if (m_name && m_name[0])
@@ -102,13 +95,6 @@ void SThunderboltDesc::load_shoc(CInifile* pIni, shared_str const& sect)
     LPCSTR m_name;
     m_name = pIni->r_string(sect, "lightning_model");
     m_pRender->CreateModel(m_name);
-
-    /*
-    IReader* F			= 0;
-    F					= FS.r_open("$game_meshes$",m_name); R_ASSERT2(F,"Empty 'lightning_model'.");
-    l_model				= ::Render->model_CreateDM(F);
-    FS.r_close			(F);
-    */
 
     // sound
     m_name = pIni->r_string(sect, "sound");
@@ -169,9 +155,8 @@ CEffect_Thunderbolt::~CEffect_Thunderbolt()
 {
     for (auto& d_it : collection)
         xr_delete(d_it);
+
     collection.clear();
-    // hGeom_model.destroy			();
-    // hGeom_gradient.destroy		();
 }
 
 shared_str CEffect_Thunderbolt::AppendDef(CEnvironment& environment, CInifile* pIni, CInifile* thunderbolts, LPCSTR sect)

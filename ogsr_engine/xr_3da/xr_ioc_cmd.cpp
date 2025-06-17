@@ -72,8 +72,6 @@ public:
         else
             strcpy_s_s(fn, sizeof(fn), "x:\\$memory$.dump");
         Memory.mem_statistic(fn);
-        //		g_pStringContainer->dump			();
-        //		g_pSharedMemoryContainer->dump		();
     }
 };
 #endif // DEBUG_MEMORY_MANAGER
@@ -133,9 +131,6 @@ public:
     virtual void Execute(LPCSTR args)
     {
         Device.DumpResourcesMemoryUsage();
-        // Device.Resources->_DumpMemoryUsage();
-        //	TODO: move this console commant into renderer
-        // VERIFY(0);
     }
 };
 
@@ -146,6 +141,7 @@ public:
     CCC_E_Dump(LPCSTR N) : IConsole_Command(N) { bEmptyArgsHandled = TRUE; };
     virtual void Execute(LPCSTR args) { Engine.Event.Dump(); }
 };
+
 class CCC_E_Signal : public IConsole_Command
 {
 public:
@@ -250,6 +246,7 @@ public:
             Msg("!Cannot store config file [%s]", cfg_full_name);
     }
 };
+
 CCC_LoadCFG::CCC_LoadCFG(LPCSTR N) : IConsole_Command(N){};
 
 void CCC_LoadCFG::Execute(LPCSTR args)
@@ -260,14 +257,12 @@ void CCC_LoadCFG::Execute(LPCSTR args)
     xr_strcpy(cfg_name, args);
     if (strext(cfg_name))
         *strext(cfg_name) = 0;
+
     xr_strcat(cfg_name, ".ltx");
 
     string_path cfg_full_name;
 
     FS.update_path(cfg_full_name, fsgame::app_data_root, cfg_name);
-
-    // if( NULL == FS.exist(cfg_full_name) )
-    //	FS.update_path					(cfg_full_name, "$fs_root$", cfg_name);
 
     if (NULL == FS.exist(cfg_full_name))
         xr_strcpy(cfg_full_name, cfg_name);
@@ -283,7 +278,6 @@ void CCC_LoadCFG::Execute(LPCSTR args)
             {
                 // Костыль от ситуации когда в редких случаях почему-то у игроков бьётся user.ltx - оказывается набит нулями, в результате чего игра не
                 // запускается. Не понятно почему так происходит, поэтому сделал тут обработку такой ситуации.
-
                 if (F->elapsed() >= sizeof(u8))
                 {
                     if (F->r_u8() == 0)
@@ -419,13 +413,15 @@ public:
     virtual void Execute(LPCSTR args) { Sound->_restart(); }
 };
 
-constexpr xr_token FpsLockToken[] = {
+constexpr xr_token FpsLockToken[] = 
+{
     {"nofpslock", 0},
     {"fpslock60", 60},
     {"fpslock120", 120},
     {"fpslock144", 144},
     {"fpslock240", 240},
-    {nullptr, 0}};
+    {nullptr, 0}
+};
 
 class CCC_soundDevice : public CCC_Token
 {

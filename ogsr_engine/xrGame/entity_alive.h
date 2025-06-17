@@ -30,8 +30,6 @@ public:
 private:
     bool m_is_agresive;
     bool m_is_start_attack;
-    // m_PhysicMovementControl
-    // CPHMovementControl		*m_PhysicMovementControl;
 
 public:
     // General
@@ -63,12 +61,6 @@ public:
     void set_lock_corpse(bool b_l_corpse);
     bool is_locked_corpse();
 
-    //	virtual float			GetfHealth				() const;
-    //	virtual float			SetfHealth				(float value);
-
-    //	virtual float			g_Health				()	const;
-    //	virtual float			g_MaxHealth				()	const;
-
     virtual float g_Radiation() const;
     virtual float SetfRadiation(float value);
 
@@ -81,8 +73,6 @@ public:
     virtual bool human_being() const { return (false); }
 
 public:
-    // IC	CPHMovementControl*					PMovement					()						{return m_PhysicMovementControl;}
-
     virtual u16 PHGetSyncItemsNumber();
     virtual CPHSynchronize* PHGetSyncItem(u16 item);
     virtual void PHUnFreeze();
@@ -131,8 +121,8 @@ protected:
 
     //текстурки капель крови
     static FactoryPtr<IWallMarkArray>* m_pBloodDropsVector;
-    //список ран с которых капает кровь
 
+    //список ран с которых капает кровь
     DEFINE_VECTOR(CWound*, WOUND_VECTOR, WOUND_VECTOR_IT);
     WOUND_VECTOR m_BloodWounds;
     //размер раны, чтоб начала капать кровь
@@ -188,6 +178,22 @@ public:
     IC void is_agresive(bool const& value);
     IC bool const& is_start_attack() const;
     IC void is_start_attack(bool const& value);
+	
+public:
+    virtual Fvector get_new_local_point_on_mesh(u16& bone_id) const;
+    virtual Fvector get_last_local_point_on_mesh(Fvector const& last_point, u16 bone_id) const;
+    virtual void OnChangeVisual();
+
+private:
+    void fill_hit_bone_surface_areas() const;
+
+private:
+    typedef xr_vector<std::pair<u16, float>> hit_bone_surface_areas_type;
+
+private:
+    mutable hit_bone_surface_areas_type m_hit_bone_surface_areas;
+    mutable CRandom m_hit_bones_random;
+    mutable bool m_hit_bone_surface_areas_actual;
 };
 
 #include "entity_alive_inline.h"

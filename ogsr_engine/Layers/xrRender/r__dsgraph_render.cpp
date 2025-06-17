@@ -27,6 +27,7 @@ bool cmp_pass(const T& left, const T& right)
 {
     if (left->first->equal(*right->first))
         return false;
+
     return left->second.ssa >= right->second.ssa;
 }
 

@@ -136,7 +136,7 @@ float CEnvModifier::sum(CEnvModifier& M, Fvector3& view)
     if (_dist_sq >= (M.radius * M.radius))
         return 0;
 
-    float _att = 1 - _sqrt(_dist_sq) / M.radius; //[0..1];
+    float _att = 1 - _sqrt(_dist_sq) / M.radius;
     float _power = M.power * _att;
 
     if (M.use_flags.test(eViewDist))
@@ -187,10 +187,7 @@ void CEnvAmbient::SSndChannel::load(CInifile& config, LPCSTR sect)
     m_sound_period.z = config.r_s32(sect, "period2");
     m_sound_period.w = config.r_s32(sect, "period3");
 
-    //	m_sound_period			= config.r_ivector4(sect,"sound_period");
     R_ASSERT(m_sound_period.x <= m_sound_period.y && m_sound_period.z <= m_sound_period.w);
-    //	m_sound_period.mul		(1000);// now in ms
-    //	m_sound_dist			= config.r_fvector2(sect,"sound_dist");
     R_ASSERT(m_sound_dist.y > m_sound_dist.x, sect);
 
     LPCSTR snds = config.r_string(sect, "sounds");
@@ -215,7 +212,7 @@ CEnvAmbient::SEffect* CEnvAmbient::create_effect(CInifile& config, LPCSTR sect)
 
     result->particles = config.r_string(sect, "particles");
     VERIFY(result->particles.size());
-#pragma todo("SIMP: Пересмотреть это! Пока убрал метод CreateAmbientParticle, в xrGame по этой части правки не вносились.") //
+#pragma todo("SIMP: Пересмотреть это! Пока убрал метод CreateAmbientParticle, в xrGame по этой части правки не вносились.")
     //g_pGamePersistent->CreateAmbientParticle(result);
 
     result->offset = config.r_fvector3(sect, "offset");
@@ -266,7 +263,7 @@ void CEnvAmbient::load(CInifile& ambients_config, CInifile& sound_channels_confi
     // sounds
     LPCSTR channels = ambients_config.r_string(sect, "sound_channels");
     u32 cnt = _GetItemCount(channels);
-    //	R_ASSERT				(cnt,"sound_channels empty", sect.c_str());
+
     m_sound_channels.resize(cnt);
 
     for (u32 i = 0; i < cnt; ++i)
@@ -276,7 +273,6 @@ void CEnvAmbient::load(CInifile& ambients_config, CInifile& sound_channels_confi
     m_effect_period.set(iFloor(ambients_config.r_float(sect, "min_effect_period") * 1000.f), iFloor(ambients_config.r_float(sect, "max_effect_period") * 1000.f));
     LPCSTR effs = ambients_config.r_string(sect, "effects");
     cnt = _GetItemCount(effs);
-    //	R_ASSERT				(cnt,"effects empty", sect.c_str());
 
     m_effects.resize(cnt);
     for (u32 k = 0; k < cnt; ++k)
@@ -349,7 +345,6 @@ CEnvDescriptor::CEnvDescriptor(shared_str const& identifier) : m_identifier(iden
 
     far_plane = 400.0f;
     
-
     fog_color.set(1, 1, 1);
     fog_density = 0.0f;
     fog_distance = 400.0f;
@@ -417,6 +412,7 @@ void CEnvDescriptor::load(CEnvironment& environment, CInifile& config)
         sky_rotation = deg2rad(config.r_float(m_identifier.c_str(), "sky_rotation"));
     else
         sky_rotation = 0;
+
     far_plane = config.r_float(m_identifier.c_str(), "far_plane");
     fog_color = config.r_fvector3(m_identifier.c_str(), "fog_color");
     fog_density = config.r_float(m_identifier.c_str(), "fog_density");
@@ -497,6 +493,7 @@ void CEnvDescriptor::load_shoc(float exec_tm, LPCSTR S, CEnvironment& environmen
     LPCSTR cldclr = pSettings->r_string(m_identifier.c_str(), "clouds_color");
     float multiplier = 0;
     sscanf(cldclr, "%f,%f,%f,%f,%f", &clouds_color.x, &clouds_color.y, &clouds_color.z, &clouds_color.w, &multiplier);
+
     if (!fis_zero(multiplier))
     {
         float save = clouds_color.w;
@@ -511,6 +508,7 @@ void CEnvDescriptor::load_shoc(float exec_tm, LPCSTR S, CEnvironment& environmen
         sky_rotation = deg2rad(pSettings->r_float(m_identifier.c_str(), "sky_rotation"));
     else
         sky_rotation = 0;
+
     far_plane = pSettings->r_float(m_identifier.c_str(), "far_plane");
     fog_color = pSettings->r_fvector3(m_identifier.c_str(), "fog_color");
     fog_density = pSettings->r_float(m_identifier.c_str(), "fog_density");
@@ -595,19 +593,18 @@ void CEnvDescriptorMixer::lerp(CEnvironment* env, CEnvDescriptor& A, CEnvDescrip
 
     sky_rotation = (fi * A.sky_rotation + f * B.sky_rotation);
 
-    //.	far_plane				=	(fi*A.far_plane + f*B.far_plane + Mdf.far_plane)*psVisDistance*modif_power;
     if (Mdf.use_flags.test(eViewDist))
         far_plane = (fi * A.far_plane + f * B.far_plane + Mdf.far_plane) * psVisDistance * modif_power;
     else
         far_plane = (fi * A.far_plane + f * B.far_plane) * psVisDistance;
 
-    //.	fog_color.lerp			(A.fog_color,B.fog_color,f).add(Mdf.fog_color).mul(modif_power);
     fog_color.lerp(A.fog_color, B.fog_color, f);
+
     if (Mdf.use_flags.test(eFogColor))
         fog_color.add(Mdf.fog_color).mul(modif_power);
 
-    //.	fog_density				=	(fi*A.fog_density + f*B.fog_density + Mdf.fog_density)*modif_power;
     fog_density = (fi * A.fog_density + f * B.fog_density);
+
     if (Mdf.use_flags.test(eFogDensity))
     {
         fog_density += Mdf.fog_density;
@@ -820,6 +817,7 @@ CEnvDescriptor* CEnvironment::create_descriptor(shared_str const& identifier, CI
     CEnvDescriptor* result = xr_new<CEnvDescriptor>(identifier);
     if (config)
         result->load(*this, *config);
+
     return result;
 }
 
@@ -849,7 +847,8 @@ void CEnvironment::load_sun()
         R_ASSERT(_valid(sun_long));
         sun_hp[i].set(sun_alt, sun_long);
         i++;
-    } while (i < 24);
+    } 
+    while (i < 24);
 }
 
 void CEnvironment::load_weathers()
@@ -985,8 +984,10 @@ void CEnvironment::load()
 
     if (!eff_Rain)
         eff_Rain = xr_new<CEffect_Rain>();
+
     if (!eff_LensFlare)
         eff_LensFlare = xr_new<CLensFlare>();
+
     if (!eff_Thunderbolt)
         eff_Thunderbolt = xr_new<CEffect_Thunderbolt>();
 
@@ -1008,6 +1009,7 @@ void CEnvironment::unload()
     }
 
     WeatherCycles.clear();
+
     // clear weather effect
     _I = WeatherFXs.begin();
     _E = WeatherFXs.end();
@@ -1016,16 +1018,20 @@ void CEnvironment::unload()
         for (auto& it : _I->second)
             xr_delete(it);
     }
+
     WeatherFXs.clear();
+
     // clear ambient
     for (auto& Ambient : Ambients)
         xr_delete(Ambient);
 
     Ambients.clear();
+
     // misc
     xr_delete(eff_Rain);
     xr_delete(eff_LensFlare);
     xr_delete(eff_Thunderbolt);
+
     CurrentWeather = nullptr;
     CurrentWeatherName = nullptr;
     CurrentEnv->clear();

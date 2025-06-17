@@ -189,7 +189,8 @@ void CInifile::Load(IReader* F, LPCSTR path, BOOL allow_dup_sections, const CIni
     string4096 str;
     string4096 str2;
 
-    auto AddOrOverride = [&]() {
+    auto AddOrOverride = [&]() 
+	{
         auto I = DATA.find(Current->Name);
         if (I != DATA.end())
         {
@@ -260,7 +261,8 @@ void CInifile::Load(IReader* F, LPCSTR path, BOOL allow_dup_sections, const CIni
                 _splitpath(fn, inc_path, folder, 0, 0);
                 strcat_s(inc_path, folder);
 
-                const auto loadFile = [&](const string_path _fn) {
+                const auto loadFile = [&](const string_path _fn) 
+				{
                     IReader* I = FS.r_open(_fn);
                     R_ASSERT(I, "Can't find include file:", _fn);
                     I->skip_bom(_fn);
@@ -407,6 +409,13 @@ bool CInifile::save_as(LPCSTR new_fname)
     }
 
     R_ASSERT(fName && fName[0]);
+	
+    if (FS.exist(fName))
+    {
+        BOOL ok = SetFileAttributes(fName, FILE_ATTRIBUTE_NORMAL);
+        R_ASSERT3(ok, fName, Debug.error2string(GetLastError()));
+    }
+
     IWriter* F = FS.w_open_ex(fName);
     if (F)
     {
@@ -420,7 +429,8 @@ bool CInifile::save_as(LPCSTR new_fname)
         struct
         {
             bool operator()(Sect* a, Sect* b) const { return a->Index < b->Index; }
-        } pred;
+        } 
+		pred;
 
         std::sort(sorted_List.begin(), sorted_List.end(), pred);
 
@@ -447,7 +457,6 @@ bool CInifile::save_as(LPCSTR new_fname)
                     if (*I.second)
                     {
                         _decorate(val, *I.second);
-
                         {
                             // only name and value
                             sprintf_s(temp, "%s = %s", *I.first, val);
@@ -886,8 +895,6 @@ void CInifile::w_bool(LPCSTR S, LPCSTR L, bool V) { w_string(S, L, V ? "true" : 
 
 void CInifile::remove_line(LPCSTR S, LPCSTR L)
 {
-    // R_ASSERT(!bReadOnly);
-
     if (line_exist(S, L))
     {
         Sect& data = r_section(S);
@@ -904,8 +911,6 @@ void CInifile::remove_line(LPCSTR S, LPCSTR L)
 
 void CInifile::remove_section(LPCSTR S)
 {
-    // R_ASSERT(!bReadOnly);
-
     if (section_exist(S))
     {
         const auto I = DATA.find(S);

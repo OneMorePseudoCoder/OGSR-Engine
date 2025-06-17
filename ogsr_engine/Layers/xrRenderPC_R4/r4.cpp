@@ -45,8 +45,6 @@ ShaderElement* CRender::rimp_select_sh_dynamic(dxRender_Visual* pVisual, float c
     int id = SE_R2_SHADOW;
     if (CRender::PHASE_NORMAL == phase)
     {
-        // if (hud)
-        //     Msg("--[%s] Detected hud model: [%s]", __FUNCTION__, pVisual->dbg_name.c_str());
         id = (hud || ((_sqrt(cdist_sq) - pVisual->getVisData().sphere.R) < r_dtex_paralax_range)) ? SE_R2_NORMAL_HQ : SE_R2_NORMAL_LQ;
     }
     return pVisual->shader->E[id]._get();
@@ -172,15 +170,9 @@ void CRender::reset_begin()
         {
             if (nullptr == it)
                 continue;
-            //try
-            //{
+
             for (int id = 0; id < R__NUM_CONTEXTS; ++id)
                 it->svis[id].resetoccq();
-            /*}
-            catch (...)
-            {
-                Msg("! Failed to flush-OCCq on light [%d] %X", it, *(u32*)(&Lights_LastFrame[it]));
-            }*/
         }
         Lights_LastFrame.clear();
     }
@@ -253,6 +245,7 @@ void CRender::ros_destroy(IRender_ObjectSpecific*& p) { xr_delete(p); }
 IRenderVisual* CRender::model_Create(LPCSTR name, IReader* data) { return Models->Create(name, data); }
 IRenderVisual* CRender::model_CreateChild(LPCSTR name, IReader* data) { return Models->CreateChild(name, data); }
 IRenderVisual* CRender::model_Duplicate(IRenderVisual* V) { return Models->Instance_Duplicate((dxRender_Visual*)V); }
+
 void CRender::model_Delete(IRenderVisual*& V, BOOL bDiscard)
 {
     if (V)
@@ -262,12 +255,14 @@ void CRender::model_Delete(IRenderVisual*& V, BOOL bDiscard)
         V = nullptr;
     }
 }
+
 IRender_DetailModel* CRender::model_CreateDM(IReader* F) // for rain or thunderbolt only
 {
     CDetail* D = xr_new<CDetail>();
     D->Load(F);
     return D;
 }
+
 void CRender::model_Delete(IRender_DetailModel*& F)
 {
     if (F)
@@ -283,6 +278,7 @@ IRenderVisual* CRender::model_CreateParticles(LPCSTR name, BOOL bNoPool)
 {
     return Models->CreateParticles(name, bNoPool);
 }
+
 void CRender::models_Prefetch() { Models->Prefetch(); }
 void CRender::models_Clear(BOOL b_complete) { Models->ClearPool(b_complete); }
 void CRender::models_savePrefetch() { Models->save_vis_prefetch(); }
@@ -292,10 +288,12 @@ ref_shader CRender::getShader(int id)
 {
     return Shaders.at(id);
 }
+
 IRenderVisual* CRender::getVisual(int id)
 {
     return Visuals.at(id);
 }
+
 D3DVERTEXELEMENT9* CRender::getVB_Format(int id, BOOL _alt)
 {
     if (_alt)
@@ -307,6 +305,7 @@ D3DVERTEXELEMENT9* CRender::getVB_Format(int id, BOOL _alt)
         return nDC.at(id).begin();
     }
 }
+
 ID3DVertexBuffer* CRender::getVB(int id, BOOL _alt) const
 {
     if (_alt)
@@ -318,6 +317,7 @@ ID3DVertexBuffer* CRender::getVB(int id, BOOL _alt) const
         return nVB.at(id);
     }
 }
+
 ID3DIndexBuffer* CRender::getIB(int id, BOOL _alt)
 {
     if (_alt)
@@ -329,6 +329,7 @@ ID3DIndexBuffer* CRender::getIB(int id, BOOL _alt)
         return nIB.at(id);
     }
 }
+
 FSlideWindowItem* CRender::getSWI(int id)
 {
     return &SWIs.at(id);
@@ -338,10 +339,6 @@ IRender_Target* CRender::getTarget() { return Target; }
 
 IRender_Light* CRender::light_create() { return Lights.Create(); }
 IRender_Glow* CRender::glow_create() { return xr_new<CGlow>(); }
-
-//BOOL CRender::occ_visible(vis_data& P) { return HOM.visible(P); }
-//BOOL CRender::occ_visible(sPoly& P) { return HOM.visible(P); }
-//BOOL CRender::occ_visible(Fbox& P) { return HOM.visible(P); }
 
 void CRender::add_Visual(u32 context_id, IRenderable* root, IRenderVisual* V, Fmatrix& m)
 {
@@ -579,7 +576,6 @@ static HRESULT create_shader(LPCSTR const pTarget, DWORD const* buffer, u32 cons
             //	TODO: DX10: share the same input signatures
 
             //	Store input signature (need only for VS)
-            // CHK_DX( D3DxxGetInputSignatureBlob(pShaderBuf->GetBufferPointer(), pShaderBuf->GetBufferSize(), &_vs->signature) );
             ID3DBlob* pSignatureBlob;
             CHK_DX(D3DGetInputSignatureBlob(buffer, buffer_size, &pSignatureBlob));
             VERIFY(pSignatureBlob);
@@ -676,7 +672,8 @@ HRESULT CRender::shader_compile(LPCSTR name, DWORD const* pSrcData, UINT SrcData
     defines.reserve(50);
 
     // options:
-    const auto appendShaderOption = [&](u32 option, const char* macro, const char* value) {
+    const auto appendShaderOption = [&](u32 option, const char* macro, const char* value) 
+	{
         if (option)
             defines.emplace_back(macro, value);
     };
@@ -930,8 +927,6 @@ void CRender::Clear()
 void CRender::End()
 {
     r_main.sync();
-
-    // DoAsyncScreenshot();
 
     R_ASSERT(HW.pDevice);
 

@@ -26,13 +26,15 @@ private:
 
     xr_vector<ISpatial*> r_spatial;
     collide::rq_results RQR;
+    CObject* m_owner;
 
     void o_new(CObject* E);
     void o_delete(CObject* E);
     void o_trace(Fvector& P, float dt, float vis_threshold);
+    bool actorHeadBone(CObject* O, int bone_id);
 
 public:
-    Vision();
+    Vision(CObject* owner);
     virtual ~Vision();
 
     struct feel_visible_Item
@@ -50,6 +52,7 @@ public:
         Fvector cp_LAST{}; // last point found to be visible
 
         float trans{};
+        u16 bone_id{};
     };
     xr_vector<feel_visible_Item> feel_visible;
 

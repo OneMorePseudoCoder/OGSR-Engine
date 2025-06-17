@@ -24,7 +24,6 @@ typedef struct
         WORD right;
         WORD bottom;
     };
-    //	RECT   rcFrame;		- лажа в MSDN
 } AVIStreamHeaderCustom;
 
 
@@ -165,8 +164,7 @@ BOOL CAviPlayerCustom::Load(char* fname)
     m_biOutFormat.biSizeImage = m_dwWidth * m_dwHeight * 4;
 
     // Найти подходящий декомпрессор
-    m_aviIC = ICLocate(ICTYPE_VIDEO, NULL, &m_biInFormat, &m_biOutFormat, // ICMODE_DECOMPRESS
-                       ICMODE_FASTDECOMPRESS);
+    m_aviIC = ICLocate(ICTYPE_VIDEO, NULL, &m_biInFormat, &m_biOutFormat, ICMODE_FASTDECOMPRESS);
     if (m_aviIC == 0)
     {
         return FALSE;
@@ -329,8 +327,6 @@ BOOL CAviPlayerCustom::GetFrame(BYTE** pDest)
     DWORD dwCurrFrame;
     dwCurrFrame = CalcFrame();
 
-    //** debug	dwCurrFrame = 112;
-
     // Если заданный кадр равен предидущему
     if (dwCurrFrame == m_dwFrameCurrent)
     {
@@ -342,7 +338,7 @@ BOOL CAviPlayerCustom::GetFrame(BYTE** pDest)
         // Если заданный кадр это Предидущий кадр + 1
         if (dwCurrFrame == m_dwFrameCurrent + 1)
         {
-            ++m_dwFrameCurrent; //	dwCurrFrame == m_dwFrameCurrent + 1
+            ++m_dwFrameCurrent;
 
             *pDest = m_pDecompressedBuf;
 
@@ -417,8 +413,7 @@ VOID CAviPlayerCustom::PreRoll(DWORD dwFrameNum)
     R_ASSERT(m_biInFormat.biSizeImage);
 
     // декомпрессим ключевой кадр с флагом ICDECOMPRESS_PREROLL
-    res = ICDecompress(m_aviIC, ICDECOMPRESS_PREROLL | ICDECOMPRESS_HURRYUP, &m_biInFormat, m_pMovieData + pCurrFrameIndex->dwChunkOffset + 8 /*m_pCompressedBuf*/, &m_biOutFormat,
-                       m_pDecompressedBuf);
+    res = ICDecompress(m_aviIC, ICDECOMPRESS_PREROLL | ICDECOMPRESS_HURRYUP, &m_biInFormat, m_pMovieData + pCurrFrameIndex->dwChunkOffset + 8 /*m_pCompressedBuf*/, &m_biOutFormat, m_pDecompressedBuf);
     if (ICERR_OK != res && ICERR_DONTDRAW != res)
     {
         R_ASSERT(0);
@@ -459,6 +454,7 @@ INT CAviPlayerCustom::SetSpeed(INT nPercent)
 
     return res;
 }
+
 DWORD CAviPlayerCustom::CalcFrame()
 {
     if (0 == m_dwFirstFrameOffset)

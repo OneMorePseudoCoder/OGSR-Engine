@@ -46,7 +46,6 @@ char const* const ch_cursor = "_";
 
 BOOL g_console_show_always = FALSE;
 
-
 static inline void split_cmd(const std::string& str, std::string& out1, std::string& out2)
 {
     size_t it{}, start{}, end{};
@@ -66,7 +65,6 @@ static inline void split_cmd(const std::string& str, std::string& out1, std::str
         it++;
     }
 }
-
 
 text_editor::line_edit_control& CConsole::ec()
 {
@@ -149,8 +147,7 @@ bool CConsole::is_mark(Console_mark type)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CConsole::CConsole()
-	: m_hShader_back(NULL)
+CConsole::CConsole() : m_hShader_back(NULL)
 {
 	m_editor = xr_new<text_editor::line_editor>((u32)CONSOLE_BUF_SIZE);
 	m_cmd_history_max = cmd_history_max;
@@ -167,8 +164,6 @@ void CConsole::Initialize()
 	pFont = NULL;
 	pFont2 = NULL;
 
-	//m_mouse_pos.x = 0;
-	//m_mouse_pos.y = 0;
 	m_last_cmd = nullptr;
 
 	m_cmd_history.reserve(m_cmd_history_max + 2);
@@ -205,11 +200,6 @@ CConsole::~CConsole()
 
 	Device.seqResolutionChanged.Remove(this);
 }
-
-//void CConsole::Destroy()
-//{
-//    
-//}
 
 void CConsole::AddCommand(IConsole_Command* cc)
 {
@@ -310,8 +300,6 @@ void CConsole::OnRender()
 
 	float ypos = fMaxY - LDIST; // тут нужно всегда вычитать оригинальную высоту без учета интервала
 	float scr_x = 1.0f / Device.fWidth_2;
-
-	//---------------------------------------------------------------------------------
 	float scr_width = 1.9f * Device.fWidth_2;
 	float ioc_d = pFont->SizeOf_(ioc_prompt);
 	float d1 = pFont->SizeOf_("_");
@@ -324,7 +312,6 @@ void CConsole::OnRender()
         LPCSTR s_mark = ec().str_mark();
         LPCSTR s_mark_a = ec().str_after_mark();
 
-        // strncpy_s( buf1, cur_pos, editor, MAX_LEN );
         float str_length = ioc_d + pFont->SizeOf_(s_cursor);
         float out_pos = 0.0f;
 
@@ -374,7 +361,8 @@ void CConsole::OnRender()
 		// из за того что тут строка по факту состоит из 3х, и из за того что ширина строк округляется, при рендере все плянет
 		// переделал тут на символьный вывод. в таком случае оно получше все выглядит
 
-		auto draw_string = [&](CGameFont* f, LPCSTR str) {
+		auto draw_string = [&](CGameFont* f, LPCSTR str) 
+		{
             for (size_t c = 0; c < strlen(str); c++)
             {
                 f->OutI(-1.0f + out_pos * scr_x, ypos, "%c", str[c]);
@@ -465,7 +453,6 @@ void CConsole::DrawBackgrounds(bool bGame)
 
 	float font_h = pFont->CurrentHeight_();
     float tips_h = std::min(m_tips.size(), (size_t)VIEW_TIPS_COUNT) * font_h;
-	//tips_h += (!m_tips.empty()) ? 5.0f : 0.0f; // убрал, хз зачем там 5 пикслелей снизу добовлялось. не красиво )
 
 	Frect pr, sr;
 	pr.x1 = ioc_w + cur_cmd_w;
@@ -552,15 +539,11 @@ void CConsole::DrawBackgrounds(bool bGame)
 		VERIFY(rb.y2 - rb.y1 >= 1.0f);
 		float back_height = rb.y2 - rb.y1;
 		float u_height = (back_height * static_cast<float>(VIEW_TIPS_COUNT)) / float(tips_sz);
+		float u_pos = back_height * float(m_start_tip) / float(tips_sz);
 		if (u_height < 0.5f * font_h)
 		{
 			u_height = 0.5f * font_h;
 		}
-
-		//float u_pos = (back_height - u_height) * float(m_start_tip) / float(tips_sz);
-		float u_pos = back_height * float(m_start_tip) / float(tips_sz);
-
-		//clamp( u_pos, 0.0f, back_height - u_height );
 
 		rs = rb;
 		rs.y1 = pr.y1 + u_pos;
@@ -674,15 +657,12 @@ void CConsole::ExecuteCommand(LPCSTR cmd_str, bool record_cmd, bool allow_disabl
 
 void CConsole::Show()
 {
-	//SECUROM_MARKER_HIGH_SECURITY_ON(11)
-
 	if (bVisible)
 	{
 		return;
 	}
-	bVisible = true;
 
-	//GetCursorPos(&m_mouse_pos);
+	bVisible = true;
 
 	ec().clear_states();
 	scroll_delta = 0;
@@ -694,9 +674,8 @@ void CConsole::Show()
 
 	if (!g_console_show_always)
 		Device.seqRender.Add(this, 1);
-	Device.seqFrame.Add(this);
 
-	//SECUROM_MARKER_HIGH_SECURITY_OFF(11)
+	Device.seqFrame.Add(this);
 }
 
 extern CInput* pInput;
@@ -707,11 +686,6 @@ void CConsole::Hide()
 	{
 		return;
 	}
-
-	//if (pInput->exclusive_mode())
-	//{
-	//	SetCursorPos(m_mouse_pos.x, m_mouse_pos.y);
-	//}
 
 	bVisible = false;
 	reset_selected_tip();
@@ -992,6 +966,7 @@ void CConsole::update_tips()
 		m_tips_mode = 0;
 		reset_selected_tip();
 	}
+
 	if ((int)m_tips.size() <= m_select_tip)
 	{
 		reset_selected_tip();

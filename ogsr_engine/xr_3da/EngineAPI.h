@@ -19,7 +19,8 @@ public:
 };
 
 // Class creation/destroying interface
-extern "C" {
+extern "C" 
+{
 typedef DLL_API DLL_Pure* __cdecl Factory_Create(CLASS_ID CLS_ID);
 typedef DLL_API void __cdecl Factory_Destroy(DLL_Pure* O);
 };
@@ -44,9 +45,5 @@ public:
 };
 
 #define NEW_INSTANCE(a) Engine.External.pCreate(a)
-//#define DEL_INSTANCE(a) \
-//    { \
-//        Engine.External.pDestroy(a); \
-//        a = NULL; \
-//    }
+
 

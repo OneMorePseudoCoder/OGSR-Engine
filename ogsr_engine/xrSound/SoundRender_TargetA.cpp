@@ -7,6 +7,7 @@
 #include <efx.h>
 
 xr_vector<u8> g_target_temp_data;
+xr_vector<u8> g_target_temp_data_16;
 
 CSoundRender_TargetA::CSoundRender_TargetA() : CSoundRender_Target()
 {
@@ -63,6 +64,7 @@ void CSoundRender_TargetA::start(CSoundRender_Emitter* E)
     // Calc storage
     buf_block = sdef_target_block * E->source()->m_wformat.nAvgBytesPerSec / 1000;
     g_target_temp_data.resize(buf_block);
+    g_target_temp_data_16.resize(buf_block * 2);
 }
 
 void CSoundRender_TargetA::render()
@@ -232,11 +234,20 @@ void CSoundRender_TargetA::fill_parameters(CSoundRender_Core* core)
 void CSoundRender_TargetA::fill_block(ALuint BufferID)
 {
     R_ASSERT(m_pEmitter);
+	ALuint format = (m_pEmitter->source()->m_wformat.nChannels == 1) ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
 
-    m_pEmitter->fill_block(&g_target_temp_data.front(), buf_block);
-    ALuint format = (m_pEmitter->source()->m_wformat.nChannels == 1) ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
-    A_CHK(alBufferData(BufferID, format, &g_target_temp_data.front(), buf_block, m_pEmitter->source()->m_wformat.nSamplesPerSec));
+	if (format == AL_FORMAT_MONO16)
+	{
+		m_pEmitter->fill_block(&g_target_temp_data.front(), buf_block);
+		A_CHK(alBufferData(BufferID, format, &g_target_temp_data.front(), buf_block, m_pEmitter->source()->m_wformat.nSamplesPerSec));
+	}
+	else
+	{
+		m_pEmitter->fill_block(&g_target_temp_data_16.front(), buf_block);
+		A_CHK(alBufferData(BufferID, format, &g_target_temp_data_16.front(), buf_block, m_pEmitter->source()->m_wformat.nSamplesPerSec));		
+	}
 }
+
 void CSoundRender_TargetA::source_changed()
 {
     dettach();

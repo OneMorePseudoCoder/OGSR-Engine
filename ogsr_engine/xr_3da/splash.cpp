@@ -5,7 +5,6 @@
 #include "resource.h"
 
 // какой то говнокод что б подключить <atlimage.h>
-
 #define min(x, y) ((x) < (y) ? (x) : (y))
 #define max(x, y) ((x) > (y) ? (x) : (y))
 #include <atlstr.h>

@@ -72,8 +72,7 @@ void CHW::CreateD3D()
     IDXGIFactory6* pFactory6 = nullptr;
     if (SUCCEEDED(CreateDXGIFactory1(IID_PPV_ARGS(&pFactory6))))
     {
-        pFactory6->EnumAdapterByGpuPreference(
-            0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,IID_PPV_ARGS(&m_pAdapter));
+        pFactory6->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,IID_PPV_ARGS(&m_pAdapter));
 
         Msg(" !CHW::CreateD3D() use DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE");
 
@@ -162,29 +161,19 @@ void CHW::CreateDevice(HWND m_hWnd)
     Caps.id_device = Desc.DeviceId;
 
     UINT createDeviceFlags = 0;
-//#ifdef DEBUG
+
     if (IsDebuggerPresent())
         createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-//#endif
 
     auto& pContext = d3d_contexts_pool[CHW::IMM_CTX_ID];
 
-    constexpr D3D_FEATURE_LEVEL pFeatureLevels[] = {
+    constexpr D3D_FEATURE_LEVEL pFeatureLevels[] = 
+	{
         D3D_FEATURE_LEVEL_11_1,
         D3D_FEATURE_LEVEL_11_0,
     };
 
-    R_CHK(D3D11CreateDevice(
-        m_pAdapter
-        , D3D_DRIVER_TYPE_UNKNOWN // Если мы выбираем конкретный адаптер, то мы обязаны использовать D3D_DRIVER_TYPE_UNKNOWN.
-        , nullptr
-        , createDeviceFlags
-        , pFeatureLevels
-        , std::size(pFeatureLevels)
-        , D3D11_SDK_VERSION
-        , &pDevice
-        , &FeatureLevel
-        , &pContext));
+    R_CHK(D3D11CreateDevice(m_pAdapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, createDeviceFlags, pFeatureLevels, std::size(pFeatureLevels), D3D11_SDK_VERSION, &pDevice, &FeatureLevel, &pContext));
 
     R_ASSERT(FeatureLevel >= D3D_FEATURE_LEVEL_11_0); //На всякий случай
 
@@ -196,15 +185,9 @@ void CHW::CreateDevice(HWND m_hWnd)
 
     CreateSwapChain2(m_hWnd);
 
-    //// https://habr.com/ru/post/308980/
-    //IDXGIDevice1* pDeviceDXGI = nullptr;
-    //R_CHK(pDevice->QueryInterface(IID_PPV_ARGS(&pDeviceDXGI)));
-    //R_CHK(pDeviceDXGI->SetMaximumFrameLatency(1));
-    //_RELEASE(pDeviceDXGI);
-
     _SHOW_REF("* CREATE: DeviceREF:", HW.pDevice);
 
-     // Register immediate context in profiler
+    // Register immediate context in profiler
     profiler_ctx = TracyD3D11Context(pDevice, pContext);
 
     UpdateWindowProps(m_hWnd);
@@ -213,34 +196,6 @@ void CHW::CreateDevice(HWND m_hWnd)
     Msg("*     Texture memory: %d M", memory / (1024 * 1024));
 
     fill_vid_mode_list(this);
-
-    // https://walbourn.github.io/direct3d-sdk-debug-layer-tricks/
-
-    //if (IsDebuggerPresent())
-    //{
-    //    ID3D11Debug* d3dDebug = nullptr;
-    //    if (SUCCEEDED(pDevice->QueryInterface(IID_PPV_ARGS(&d3dDebug))))
-    //    {
-    //        ID3D11InfoQueue* d3dInfoQueue = nullptr;
-    //        if (SUCCEEDED(d3dDebug->QueryInterface(IID_PPV_ARGS(&d3dInfoQueue))))
-    //        {
-    //            d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
-
-    //            // Add more message IDs here as needed
-    //            D3D11_MESSAGE_ID hide[] = {
-    //                D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS,
-    //            };
-
-    //            D3D11_INFO_QUEUE_FILTER filter = {};
-    //            filter.DenyList.NumIDs = _countof(hide);
-    //            filter.DenyList.pIDList = hide;
-    //            d3dInfoQueue->AddStorageFilterEntries(&filter);
-
-    //            _RELEASE(d3dInfoQueue);
-    //        }
-    //        _RELEASE(d3dDebug);
-    //    }
-    //}
 
     ImGui_ImplDX11_Init(m_hWnd, pDevice, pContext);
 
@@ -352,8 +307,7 @@ void CHW::DumpVideoMemoryUsage() const
         IDXGIAdapter3* adapter3;
         DXGI_QUERY_VIDEO_MEMORY_INFO videoMemoryInfo;
 
-        if (SUCCEEDED(m_pAdapter->QueryInterface(&adapter3)) 
-            && SUCCEEDED(adapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &videoMemoryInfo)))
+        if (SUCCEEDED(m_pAdapter->QueryInterface(&adapter3)) && SUCCEEDED(adapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &videoMemoryInfo)))
         {
             Msg("\n\tDedicated VRAM: %zu MB (%zu bytes)\n\tDedicated Memory: %zu MB (%zu bytes)\n\tShared Memory: %zu MB (%zu bytes)\n\tCurrentUsage: %zu MB (%zu bytes)\n\tBudget: %zu MB (%zu bytes)",
                 Desc.DedicatedVideoMemory / 1024 / 1024, Desc.DedicatedVideoMemory, 
@@ -410,11 +364,7 @@ void CHW::UpdateWindowProps(HWND m_hWnd) const
 
         GetClientRect(GetDesktopWindow(), &DesktopRect);
 
-        SetRect(&m_rcWindowBounds, 
-            (DesktopRect.right - dxgi_mode_desc.Width) / 2, 
-            (DesktopRect.bottom - dxgi_mode_desc.Height) / 2,
-            (DesktopRect.right + dxgi_mode_desc.Width) / 2, 
-            (DesktopRect.bottom + dxgi_mode_desc.Height) / 2);
+        SetRect(&m_rcWindowBounds, (DesktopRect.right - dxgi_mode_desc.Width) / 2, (DesktopRect.bottom - dxgi_mode_desc.Height) / 2, (DesktopRect.right + dxgi_mode_desc.Width) / 2, (DesktopRect.bottom + dxgi_mode_desc.Height) / 2);
     }
     else
     {
@@ -427,13 +377,7 @@ void CHW::UpdateWindowProps(HWND m_hWnd) const
     if (bBordersMode)
         AdjustWindowRect(&m_rcWindowBounds, DWORD(dwWindowStyle), FALSE);
 
-    SetWindowPos(m_hWnd, HWND_NOTOPMOST
-        , m_rcWindowBounds.left
-        , m_rcWindowBounds.top + fYOffset
-        , (m_rcWindowBounds.right - m_rcWindowBounds.left)
-        , (m_rcWindowBounds.bottom - m_rcWindowBounds.top)
-        
-        , /*SWP_SHOWWINDOW | */SWP_NOCOPYBITS | SWP_DRAWFRAME);
+    SetWindowPos(m_hWnd, HWND_NOTOPMOST, m_rcWindowBounds.left, m_rcWindowBounds.top + fYOffset, (m_rcWindowBounds.right - m_rcWindowBounds.left), (m_rcWindowBounds.bottom - m_rcWindowBounds.top), SWP_NOCOPYBITS | SWP_DRAWFRAME);
 }
 
 struct _uniq_mode

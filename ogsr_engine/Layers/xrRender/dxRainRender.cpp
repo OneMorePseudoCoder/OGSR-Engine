@@ -106,13 +106,11 @@ void dxRainRender::Render(CBackend& cmd_list, CEffect_Rain & owner)
     // Render if needed
     if (vCount)
     {
-        // HW.pDevice->SetRenderState	(D3DRS_CULLMODE,D3DCULL_NONE);
         cmd_list.set_CullMode(CULL_NONE);
         cmd_list.set_xform_world(Fidentity);
         cmd_list.set_Shader(SH_Rain);
         cmd_list.set_Geometry(hGeom_Rain);
         cmd_list.Render(D3DPT_TRIANGLELIST, vOffset, 0, vCount, 0, vCount / 2);
-        // HW.pDevice->SetRenderState	(D3DRS_CULLMODE,D3DCULL_CCW);
         cmd_list.set_CullMode(CULL_CCW);
         cmd_list.set_c("ssfx_rain_setup", ps_ssfx_rain_2); // Alpha, Brigthness, Refraction, Reflection
     }

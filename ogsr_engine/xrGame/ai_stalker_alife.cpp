@@ -135,25 +135,29 @@ void CAI_Stalker::choose_weapon(ALife::EWeaponPriorityType weapon_priority_type)
         float current_value = -1.f;
         switch (weapon_priority_type)
         {
-        case ALife::eWeaponPriorityTypeKnife: {
+        case ALife::eWeaponPriorityTypeKnife: 
+        {
             if (1 != j)
                 continue;
             current_value = ai().ef_storage().m_pfItemValue->ffGetValue();
             break;
         }
-        case ALife::eWeaponPriorityTypeSecondary: {
+        case ALife::eWeaponPriorityTypeSecondary: 
+        {
             if (5 != j)
                 continue;
             current_value = ai().ef_storage().m_pfSmallWeaponValue->ffGetValue();
             break;
         }
-        case ALife::eWeaponPriorityTypePrimary: {
+        case ALife::eWeaponPriorityTypePrimary: 
+        {
             if ((6 != j) && (8 != j) && (9 != j))
                 continue;
             current_value = ai().ef_storage().m_pfMainWeaponValue->ffGetValue();
             break;
         }
-        case ALife::eWeaponPriorityTypeGrenade: {
+        case ALife::eWeaponPriorityTypeGrenade: 
+        {
             if (7 != j)
                 continue;
             current_value = ai().ef_storage().m_pfItemValue->ffGetValue();
@@ -181,33 +185,35 @@ void CAI_Stalker::choose_medikit()
     return;
 }
 
-/*void CAI_Stalker::choose_detector()
+void CAI_Stalker::choose_detector()
 {
-    CTradeItem					*best_detector	= 0;
-    float						best_value		= -1.f;
+    CTradeItem *best_detector = 0;
+    float best_value = -1.f;
     ai().ef_storage().non_alife().member()	= this;
     xr_vector<CTradeItem>::iterator	I = m_temp_items.begin();
     xr_vector<CTradeItem>::iterator	E = m_temp_items.end();
-    for ( ; I != E; ++I) {
+    for ( ; I != E; ++I) 
+    {
         if (m_total_money < (*I).m_item->Cost())
             continue;
 
-        CCustomDetector			*detector = smart_cast<CCustomDetector*>((*I).m_item);
+        CCustomDetector *detector = smart_cast<CCustomDetector*>((*I).m_item);
         if (!detector)
             continue;
 
         // evaluating item
         ai().ef_storage().non_alife().member_item() = detector;
-        float					current_value = ai().ef_storage().m_pfDetectorType->ffGetValue();
+        float current_value = ai().ef_storage().m_pfDetectorType->ffGetValue();
         // choosing the best item
-        if ((current_value > best_value)) {
-            best_detector		= &*I;
-            best_value			= current_value;
+        if ((current_value > best_value)) 
+        {
+            best_detector = &*I;
+            best_value = current_value;
         }
     }
-    //if (best_detector)
-    //	buy_item_virtual		(*best_detector);
-}*/
+    if (best_detector)
+        buy_item_virtual(*best_detector);
+}
 
 void CAI_Stalker::choose_equipment()
 {
@@ -226,7 +232,7 @@ void CAI_Stalker::select_items()
     choose_weapon(ALife::eWeaponPriorityTypePrimary);
     choose_weapon(ALife::eWeaponPriorityTypeGrenade);
     choose_medikit();
-    // choose_detector		();
+    choose_detector();
     choose_equipment();
 }
 

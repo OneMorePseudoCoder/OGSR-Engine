@@ -13,8 +13,7 @@ static void LogOsVersion()
 
         if (NT_SUCCESS(RtlGetVersion(&osInfo)))
         {
-            Msg("--OS Version major: [%d] minor: [%d], build: [%d]. Server OS: [%s]", osInfo.dwMajorVersion, osInfo.dwMinorVersion, osInfo.dwBuildNumber,
-                osInfo.wProductType != VER_NT_WORKSTATION ? "yes" : "no");
+            Msg("--OS Version major: [%d] minor: [%d], build: [%d]. Server OS: [%s]", osInfo.dwMajorVersion, osInfo.dwMinorVersion, osInfo.dwBuildNumber, osInfo.wProductType != VER_NT_WORKSTATION ? "yes" : "no");
             return;
         }
     }
@@ -28,11 +27,9 @@ static void LogWorkingDriveInfo()
 
     if (GetDiskFreeSpaceEx(Core.ApplicationPath, nullptr, &TotalNumberOfBytes, &TotalNumberOfFreeBytes))
     {
-        Msg("Current drive space free: [%0.f]Mb total: [%0.f]Mb", static_cast<float>(TotalNumberOfFreeBytes.QuadPart) / 1024.f / 1024.f,
-            static_cast<float>(TotalNumberOfBytes.QuadPart) / 1024.f / 1024.f);
+        Msg("Current drive space free: [%0.f]Mb total: [%0.f]Mb", static_cast<float>(TotalNumberOfFreeBytes.QuadPart) / 1024.f / 1024.f, static_cast<float>(TotalNumberOfBytes.QuadPart) / 1024.f / 1024.f);
     }
 }
-
 
 extern LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -54,8 +51,7 @@ void CRenderDevice::Initialize()
 
         // Register the windows class
         HINSTANCE hInstance = (HINSTANCE)GetModuleHandle(nullptr);
-        WNDCLASS wndClass = {0,    WndProc, 0, 0, hInstance, LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1)), LoadCursor(nullptr, IDC_ARROW), (HBRUSH)GetStockObject(BLACK_BRUSH),
-                             nullptr, wndclass};
+        WNDCLASS wndClass = {0,    WndProc, 0, 0, hInstance, LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1)), LoadCursor(nullptr, IDC_ARROW), (HBRUSH)GetStockObject(BLACK_BRUSH), nullptr, wndclass};
         RegisterClass(&wndClass);
 
         // Set the window's initial style
@@ -67,9 +63,7 @@ void CRenderDevice::Initialize()
         AdjustWindowRect(&rc, m_dwWindowStyle, FALSE);
 
         // Create the render window
-        m_hWnd = CreateWindow /*Ex*/ ( // WS_EX_TOPMOST,
-            wndclass, "OGSR Engine", m_dwWindowStyle,
-            /*rc.left, rc.top, */ CW_USEDEFAULT, CW_USEDEFAULT, (rc.right - rc.left), (rc.bottom - rc.top), 0L, 0, hInstance, 0L);
+        m_hWnd = CreateWindow(wndclass, "OGSR Engine", m_dwWindowStyle, CW_USEDEFAULT, CW_USEDEFAULT, (rc.right - rc.left), (rc.bottom - rc.top), 0L, 0, hInstance, 0L);
         gGameWindow = m_hWnd;
 
         TracySetProgramName("OGSR Engine");
@@ -79,13 +73,4 @@ void CRenderDevice::Initialize()
     m_dwWindowStyle = u32(GetWindowLongPtr(m_hWnd, GWL_STYLE));
     GetWindowRect(m_hWnd, &m_rcWindowBounds);
     GetClientRect(m_hWnd, &m_rcWindowClient);
-
-    /*
-    if (strstr(lpCmdLine,"-gpu_sw")!=NULL)		HW.Caps.bForceGPU_SW		= TRUE;
-    else										HW.Caps.bForceGPU_SW		= FALSE;
-    if (strstr(lpCmdLine,"-gpu_nopure")!=NULL)	HW.Caps.bForceGPU_NonPure	= TRUE;
-    else										HW.Caps.bForceGPU_NonPure	= FALSE;
-    if (strstr(lpCmdLine,"-gpu_ref")!=NULL)		HW.Caps.bForceGPU_REF		= TRUE;
-    else										HW.Caps.bForceGPU_REF		= FALSE;
-    */
 }

@@ -71,6 +71,7 @@ IC bool TestRayTri(const Fvector& C, const Fvector& D, Fvector** p, float& u, fl
     }
     return true;
 }
+
 //-- Ray-Triangle : 1st level of indirection --------------------------------
 IC bool TestRayTri(const Fvector& C, const Fvector& D, Fvector* p, float& u, float& v, float& range, bool bCull)
 {
@@ -150,6 +151,7 @@ IC bool TestRayTri2(const Fvector& C, const Fvector& D, Fvector* p, float& range
         return false;
     return true;
 }
+
 IC bool TestRayTri2(const Fvector& C, const Fvector& D, Fvector** p, float& range)
 {
     Fvector edge1, edge2, tvec, pvec, qvec;
@@ -758,6 +760,7 @@ IC EST_Result TestSphereTri(const Fvector& sphereOrigin, float sphereRadius, Fve
     e1.sub(p[2], p[0]);
     return TestSphereTri(sphereOrigin, sphereRadius, p[0], e0, e1);
 }
+
 IC EST_Result TestSphereTri(const Fvector& sphereOrigin, float sphereRadius, Fvector** p)
 {
     Fvector e0, e1;
@@ -766,6 +769,7 @@ IC EST_Result TestSphereTri(const Fvector& sphereOrigin, float sphereRadius, Fve
     e1.sub(*p[2], *p[0]);
     return TestSphereTri(sphereOrigin, sphereRadius, *p[0], e0, e1);
 }
+
 IC bool TestSphereOBB(const Fsphere& rkSphere, const Fobb& rkBox)
 {
     // Test for intersection in the coordinate system of the box by

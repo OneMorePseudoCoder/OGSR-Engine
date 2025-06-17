@@ -82,8 +82,9 @@ protected:
 
     CMissile* m_fake_missile;
 
-    //параметры броска
+	xr_vector<shared_str> m_sCheckoutBones;
 
+    //параметры броска
     float m_fMinForce, m_fConstForce, m_fMaxForce, m_fForceGrowSpeed;
     
     bool m_constpower;
@@ -100,6 +101,7 @@ protected:
     //относительная точка и направление вылета гранаты
     Fvector m_vThrowPoint;
     Fvector m_vThrowDir;
+
     //для HUD
     Fvector m_vHudThrowPoint;
     Fvector m_vHudThrowDir;

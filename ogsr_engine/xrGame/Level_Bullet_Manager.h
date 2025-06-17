@@ -9,6 +9,7 @@
 //структура, описывающая пулю и ее свойства в полете
 struct SBullet
 {
+    u32 m_dwTimeRemainder; //остаток времени, который не был учтен на предыдущем кадре
     u32 frame_num; //номер кадра на котором была запущена пуля
     union
     {
@@ -23,7 +24,8 @@ struct SBullet
             u16 aim_bullet : 1; //прицеленная пуля( вылетевшая первой после длительного молчания оружия (1-3 сек.))
         };
         u16 _storage;
-    } flags;
+    } 
+	flags;
     u16 bullet_material_idx;
 
     Fvector pos; //текущая позиция
@@ -66,8 +68,7 @@ public:
     SBullet();
     ~SBullet();
 
-    void Init(const Fvector& position, const Fvector& direction, float start_speed, float power, float impulse, u16 sender_id, u16 sendersweapon_id, ALife::EHitType e_hit_type,
-              float maximum_distance, const CCartridge& cartridge, bool SendHit);
+    void Init(const Fvector& position, const Fvector& direction, float start_speed, float power, float impulse, u16 sender_id, u16 sendersweapon_id, ALife::EHitType e_hit_type, float maximum_distance, const CCartridge& cartridge, bool SendHit);
 
     bool isOnBulletHit() { return m_on_bullet_hit; }
     void setOnBulletHit(bool flag) { m_on_bullet_hit = flag; }
@@ -95,6 +96,7 @@ private:
 
         EVENT_DUMMY = u8(-1),
     };
+
     struct _event
     {
         EventType Type;
@@ -115,9 +117,6 @@ protected:
     BulletVec m_Bullets; // working set, locked
     BulletVec m_BulletsRendered; // copy for rendering
     xr_vector<_event> m_Events;
-
-    //остаток времени, который не был учтен на предыдущем кадре
-    u32 m_dwTimeRemainder;
 
     //отрисовка трассеров от пуль
     CTracer tracers;
@@ -175,8 +174,7 @@ public:
 
     void Load();
     void Clear();
-    SBullet& AddBullet(const Fvector& position, const Fvector& direction, float starting_speed, float power, float impulse, u16 sender_id, u16 sendersweapon_id,
-                       ALife::EHitType e_hit_type, float maximum_distance, const CCartridge& cartridge, bool SendHit, bool AimBullet = false);
+    SBullet& AddBullet(const Fvector& position, const Fvector& direction, float starting_speed, float power, float impulse, u16 sender_id, u16 sendersweapon_id, ALife::EHitType e_hit_type, float maximum_distance, const CCartridge& cartridge, bool SendHit, bool AimBullet = false);
 
     void CommitEvents(); // @ the start of frame
     void CommitRenderSet(); // @ the end of frame

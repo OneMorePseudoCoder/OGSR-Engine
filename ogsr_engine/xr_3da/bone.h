@@ -13,7 +13,6 @@ class ENGINE_API CBoneInstance;
 // callback
 typedef void BoneCallbackFunction(CBoneInstance* P);
 typedef BoneCallbackFunction* BoneCallback;
-// typedef void  (* BoneCallback)		(CBoneInstance* P);
 
 //*** Bone Instance *******************************************************************************
 #pragma pack(push, 8)
@@ -211,6 +210,7 @@ struct ECORE_API SBoneShape
     Fsphere sphere; // 4*4
     Fcylinder cylinder; // 8*4
     SBoneShape() { Reset(); }
+
     void Reset()
     {
         flags.zero();
@@ -220,6 +220,7 @@ struct ECORE_API SBoneShape
         sphere.R = 0.f;
         cylinder.invalidate();
     }
+
     bool Valid()
     {
         switch (type)
@@ -262,18 +263,14 @@ struct ECORE_API SJointIKData
         break_force = 0.f;
         break_torque = 0.f;
     }
+
     void clamp_by_limits(Fvector& dest_xyz);
+
     void Export(IWriter& F)
     {
         F.w_u32(type);
         for (auto& limit : limits)
         {
-            // Kostya Slipchenko say:
-            // направление вращения в ОДЕ отличается от направления вращение в X-Ray
-            // поэтому меняем знак у лимитов
-            // F.w_float	(_min(-limits[k].limit.x,-limits[k].limit.y)); // min (swap special for ODE)
-            // F.w_float	(_max(-limits[k].limit.x,-limits[k].limit.y)); // max (swap special for ODE)
-
             VERIFY(_min(-limits[k].limit.x, -limits[k].limit.y) == -limits[k].limit.y);
             VERIFY(_max(-limits[k].limit.x, -limits[k].limit.y) == -limits[k].limit.x);
 
@@ -292,6 +289,7 @@ struct ECORE_API SJointIKData
 
         F.w_float(friction);
     }
+
     bool Import(IReader& F, u16 vers)
     {
         type = (EJointType)F.r_u32();
@@ -313,24 +311,11 @@ struct ECORE_API SJointIKData
 class IBoneData
 {
 public:
-    //virtual IBoneData& GetChild(u16 id) = 0;
-    //virtual const IBoneData& GetChild(u16 id) const = 0;
-    //virtual u16 GetSelfID() const = 0;
-    //virtual u16 GetNumChildren() const = 0;
-
     virtual const SJointIKData& get_IK_data() const = 0;
-    //virtual const Fmatrix& get_bind_transform() const = 0;
-    //virtual const SBoneShape& get_shape() const = 0;
-    //virtual const Fobb& get_obb() const = 0;
-    //virtual const Fvector& get_center_of_mass() const = 0;
-    //virtual float get_mass() const = 0;
-    //virtual u16 get_game_mtl_idx() const = 0;
-    //virtual u16 GetParentID() const = 0;
     virtual float lo_limit(u8 k) const = 0;
     virtual float hi_limit(u8 k) const = 0;
 };
 
-// static const Fobb	dummy ;//= Fobb().identity();
 //  refs
 class CBone;
 DEFINE_VECTOR(CBone*, BoneVec, BoneIt);
@@ -354,9 +339,6 @@ class ECORE_API CBone : public CBoneInstance, public IBoneData
     Fmatrix rest_transform;
     Fmatrix rest_i_transform;
 
-    // Fmatrix			    last_transform;
-
-    // Fmatrix				render_transform;
 public:
     int SelfID;
     CBone* parent;
@@ -371,7 +353,6 @@ public:
     };
     SJointIKData IK_data;
     shared_str game_mtl;
-    //SBoneShape shape;
 
     float mass;
     Fvector center_of_mass;
@@ -405,35 +386,6 @@ public:
     IC BOOL IsRoot() { return (parent == nullptr); }
     shared_str& NameRef() { return name; }
 
-    //// transformation
-    //const Fvector& _Offset() { return mot_offset; }
-    //const Fvector& _Rotate() { return mot_rotate; }
-    //float _Length() { return mot_length; }
-    //IC Fmatrix& _RTransform() { return rest_transform; }
-    //IC Fmatrix& _RITransform() { return rest_i_transform; }
-    //IC Fmatrix& _LRTransform() { return local_rest_transform; }
-    //IC Fmatrix& _MTransform() { return mot_transform; }
-
-    //IC Fmatrix& _LTransform() { return mTransform; } //{return last_transform;}
-    //IC const Fmatrix& _LTransform() const { return mTransform; }
-
-    //IC Fmatrix& _RenderTransform() { return mRenderTransform; } //{return render_transform;}
-    //IC Fvector& _RestOffset() { return rest_offset; }
-    //IC Fvector& _RestRotate() { return rest_rotate; }
-
-    //void _Update(const Fvector& T, const Fvector& R)
-    //{
-    //    mot_offset.set(T);
-    //    mot_rotate.set(R);
-    //    mot_length = rest_length;
-    //}
-    //void Reset()
-    //{
-    //    mot_offset.set(rest_offset);
-    //    mot_rotate.set(rest_rotate);
-    //    mot_length = rest_length;
-    //}
-
     // IO
     void Save(IWriter& F);
     void Load_0(IReader& F);
@@ -451,24 +403,7 @@ public:
     void CopyData(CBone* bone);
 
 private:
-    //IBoneData& GetChild(u16 id) { return *children[id]; }
-    //const IBoneData& GetChild(u16 id) const { return *children[id]; }
-    //u16 GetSelfID() const { return (u16)SelfID; }
-    //u16 GetNumChildren() const { return u16(children.size()); }
     const SJointIKData& get_IK_data() const { return IK_data; }
-    //const Fmatrix& get_bind_transform() const { return local_rest_transform; }
-    //const SBoneShape& get_shape() const { return shape; }
-    //const Fobb& get_obb() const;
-    //const Fvector& get_center_of_mass() const { return center_of_mass; }
-    //float get_mass() const { return mass; }
-    //u16 get_game_mtl_idx() const;
-    //u16 GetParentID() const
-    //{
-    //    if (parent)
-    //        return u16(parent->SelfID);
-    //    else
-    //        return u16(-1);
-    //};
     float lo_limit(u8 k) const { return engine_lo_limit(k); }
     float hi_limit(u8 k) const { return engine_hi_limit(k); }
 };
@@ -525,16 +460,7 @@ public:
     void CalculateM2B(const Fmatrix& Parent);
 
 private:
-    //IBoneData& GetChild(u16 id);
-    //const IBoneData& GetChild(u16 id) const;
-    //u16 GetNumChildren() const;
     const SJointIKData& get_IK_data() const { return IK_data; }
-    //const Fmatrix& get_bind_transform() const { return bind_transform; }
-    //const SBoneShape& get_shape() const { return shape; }
-    //const Fobb& get_obb() const { return obb; }
-    //const Fvector& get_center_of_mass() const { return center_of_mass; }
-    //float get_mass() const { return mass; }
-    //u16 get_game_mtl_idx() const { return game_mtl_idx; }
     float lo_limit(u8 k) const { return IK_data.limits[k].limit.x; }
     float hi_limit(u8 k) const { return IK_data.limits[k].limit.y; }
 

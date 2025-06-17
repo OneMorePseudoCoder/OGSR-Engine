@@ -178,7 +178,6 @@ void CEntityAlive::reinit()
 void CEntityAlive::reload(LPCSTR section)
 {
     CEntity::reload(section);
-    //	CEntityCondition::reload(section);
 
     m_ef_creature_type = pSettings->r_u32(section, "ef_creature_type");
     m_ef_weapon_type = READ_IF_EXISTS(pSettings, r_u32, section, "ef_weapon_type", u32(-1));
@@ -206,12 +205,10 @@ void CEntityAlive::shedule_Update(u32 dt)
     {
         if (conditions().GetWhoHitLastTime())
         {
-            //			Msg			("%6d : KillEntity from CEntityAlive (using who hit last time) for object %s",Device.dwTimeGlobal,*cName());
             KillEntity(conditions().GetWhoHitLastTimeID());
         }
         else
         {
-            //			Msg			("%6d : KillEntity from CEntityAlive for object %s",Device.dwTimeGlobal,*cName());
             KillEntity(ID());
         }
     }
@@ -219,10 +216,6 @@ void CEntityAlive::shedule_Update(u32 dt)
 
 BOOL CEntityAlive::net_Spawn(CSE_Abstract* DC)
 {
-    //установить команду в соответствии с community
-    /*	if(monster_community->team() != 255)
-            id_Team = monster_community->team();*/
-
     conditions().reinit();
     inherited::net_Spawn(DC);
 
@@ -243,12 +236,8 @@ BOOL CEntityAlive::net_Spawn(CSE_Abstract* DC)
 void CEntityAlive::net_Destroy() { inherited::net_Destroy(); }
 
 void CEntityAlive::HitImpulse(float /**amount/**/, Fvector& /**vWorldDir/**/, Fvector& /**vLocalDir/**/)
-{
-    //	float Q					= 2*float(amount)/m_PhysicMovementControl->GetMass();
-    //	m_PhysicMovementControl->vExternalImpulse.mad	(vWorldDir,Q);
-}
+{}
 
-// void CEntityAlive::Hit(float P, Fvector &dir,CObject* who, s16 element,Fvector position_in_object_space, float impulse, ALife::EHitType hit_type, float AP)
 void CEntityAlive::Hit(SHit* pHDS)
 {
     SHit HDS = *pHDS;
@@ -321,7 +310,7 @@ float CEntityAlive::CalcCondition(float /**hit/**/)
     conditions().UpdateCondition();
 
     // dont call inherited::CalcCondition it will be meaningless
-    return conditions().GetHealthLost(); //*100.f;
+    return conditions().GetHealthLost();
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -332,6 +321,7 @@ u16 CEntityAlive::PHGetSyncItemsNumber()
     else
         return inherited::PHGetSyncItemsNumber();
 }
+
 CPHSynchronize* CEntityAlive::PHGetSyncItem(u16 item)
 {
     if (character_physics_support()->movement()->CharacterExist())
@@ -339,6 +329,7 @@ CPHSynchronize* CEntityAlive::PHGetSyncItem(u16 item)
     else
         return inherited::PHGetSyncItem(item);
 }
+
 void CEntityAlive::PHUnFreeze()
 {
     if (character_physics_support()->movement()->CharacterExist())
@@ -346,6 +337,7 @@ void CEntityAlive::PHUnFreeze()
     else if (m_pPhysicsShell)
         m_pPhysicsShell->UnFreeze();
 }
+
 void CEntityAlive::PHFreeze()
 {
     if (character_physics_support()->movement()->CharacterExist())
@@ -370,6 +362,7 @@ void CEntityAlive::BloodyWallmarks(float P, const Fvector& dir, s16 element, con
         Fmatrix& m_bone = (V->LL_GetBoneInstance(u16(element))).mTransform;
         m_bone.transform_tiny(start_pos);
     }
+
     XFORM().transform_tiny(start_pos);
 
     float small_entity = 1.f;
@@ -429,13 +422,6 @@ void CEntityAlive::PlaceBloodWallmark(const Fvector& dir, const Fvector& start_p
 
 void CEntityAlive::StartFireParticles(CWound* pWound)
 {
-    /*
-        if ( pWound->GetBoneNum() == BI_NONE ) {
-          Msg( "! [%s]: %s: can't handle BI_NONE", __FUNCTION__, cName().c_str() );
-          return;
-        }
-    */
-
     if (pWound->TypeSize(ALife::eHitTypeBurn) > m_fStartBurnWoundSize)
     {
         if (std::find(m_ParticleWounds.begin(), m_ParticleWounds.end(), pWound) == m_ParticleWounds.end())
@@ -453,8 +439,7 @@ void CEntityAlive::StartFireParticles(CWound* pWound)
 
         if (BI_NONE != particle_bone)
         {
-            CParticlesPlayer::StartParticles(pWound->GetParticleName(), pWound->GetParticleBoneNum(), Fvector().set(0, 1, 0), ID(),
-                                             u32(float(m_dwMinBurnTime) * ::Random.randF(0.5f, 1.5f)), false);
+            CParticlesPlayer::StartParticles(pWound->GetParticleName(), pWound->GetParticleBoneNum(), Fvector().set(0, 1, 0), ID(), u32(float(m_dwMinBurnTime) * ::Random.randF(0.5f, 1.5f)), false);
         }
         else
         {
@@ -467,8 +452,6 @@ void CEntityAlive::UpdateFireParticles()
 {
     if (m_ParticleWounds.empty())
         return;
-
-    //	WOUND_VECTOR_IT last_it;
 
     for (WOUND_VECTOR_IT it = m_ParticleWounds.begin(); it != m_ParticleWounds.end();)
     {
@@ -531,8 +514,6 @@ void CEntityAlive::UpdateBloodDrops()
         return;
     }
 
-    //	WOUND_VECTOR_IT last_it;
-
     for (WOUND_VECTOR_IT it = m_BloodWounds.begin(); it != m_BloodWounds.end();)
     {
         CWound* pWound = *it;
@@ -589,33 +570,12 @@ CEntityConditionSimple* CEntityAlive::create_entity_condition(CEntityConditionSi
     return (inherited::create_entity_condition(m_entity_condition));
 }
 
-/*
-float CEntityAlive::GetfHealth	() const
-{
-    return conditions().health()*100.f;
-}
-
-float CEntityAlive::SetfHealth	(float value)
-{
-    conditions().health() = value/100.f;
-    return value;
-}
-*/
 float CEntityAlive::SetfRadiation(float value)
 {
     conditions().radiation() = value / 100.f;
     return value;
 }
-/*
-float CEntityAlive::g_Health	() const
-{
-    return conditions().GetHealth()*100.f;
-}
-float CEntityAlive::g_MaxHealth	() const
-{
-    return conditions().GetMaxHealth()*100.f;
-}
-*/
+
 float CEntityAlive::g_Radiation() const { return conditions().GetRadiation() * 100.f; }
 
 DLL_Pure* CEntityAlive::_construct()
@@ -678,6 +638,7 @@ CIKLimbsController* CEntityAlive::character_ik_controller()
         return NULL;
     }
 }
+
 CPHSoundPlayer* CEntityAlive::ph_sound_player()
 {
     if (character_physics_support())
@@ -719,10 +680,233 @@ void CEntityAlive::create_anim_mov_ctrl(CBlend* b)
     if (cs)
         cs->on_create_anim_mov_ctrl();
 }
+
 void CEntityAlive::destroy_anim_mov_ctrl()
 {
     inherited::destroy_anim_mov_ctrl();
     CCharacterPhysicsSupport* cs = character_physics_support();
     if (cs)
         cs->on_destroy_anim_mov_ctrl();
+}
+
+#include "../xr_3da/xr_collide_form.h"
+
+struct element_predicate
+{
+    inline bool operator()(CCF_Skeleton::SElement const& element, u16 element_id) const
+    {
+        return element.elem_id < element_id;
+    }
+}; // struct element_predicate
+
+struct sort_surface_area_predicate
+{
+    inline bool operator()(std::pair<u16, float> const& left, std::pair<u16, float> const& right) const
+    {
+        return left.second > right.second;
+    }
+}; // struct sort_surface_area_predicate
+
+void CEntityAlive::OnChangeVisual()
+{
+    inherited::OnChangeVisual();
+
+    m_hit_bone_surface_areas_actual = false;
+}
+
+void CEntityAlive::fill_hit_bone_surface_areas() const
+{
+    VERIFY(!m_hit_bone_surface_areas_actual);
+    m_hit_bone_surface_areas_actual = true;
+
+    IKinematics* const kinematics = smart_cast<IKinematics*>(Visual());
+    VERIFY(kinematics);
+    VERIFY(kinematics->LL_BoneCount());
+
+    m_hit_bone_surface_areas.clear();
+
+    for (u16 i = 0, n = kinematics->LL_BoneCount(); i < n; ++i)
+    {
+        SBoneShape const& shape = kinematics->LL_GetData(i).shape;
+        if (SBoneShape::stNone == shape.type)
+            continue;
+
+        if (shape.flags.is(SBoneShape::sfNoPickable))
+            continue;
+
+        float surface_area = flt_max;
+        switch (shape.type)
+        {
+        case SBoneShape::stBox: 
+		{
+            Fvector const& half_size = shape.box.m_halfsize;
+            surface_area = 2.f * (half_size.x * (half_size.y + half_size.z) + half_size.y * half_size.z);
+            break;
+        }
+        case SBoneShape::stSphere: 
+		{
+            surface_area = 4.f * PI * _sqr(shape.sphere.R);
+            break;
+        }
+        case SBoneShape::stCylinder: 
+		{
+            surface_area = 2.f * PI * shape.cylinder.m_radius * (shape.cylinder.m_radius + shape.cylinder.m_height);
+            break;
+        }
+        default: NODEFAULT;
+        }
+
+        m_hit_bone_surface_areas.push_back(std::make_pair(i, surface_area));
+    }
+
+    std::sort(m_hit_bone_surface_areas.begin(), m_hit_bone_surface_areas.end(), sort_surface_area_predicate());
+}
+
+BOOL g_ai_use_old_vision = 0;
+
+Fvector CEntityAlive::get_new_local_point_on_mesh(u16& bone_id) const
+{
+    if (g_ai_use_old_vision)
+        return inherited::get_new_local_point_on_mesh(bone_id);
+
+    IKinematics* const kinematics = smart_cast<IKinematics*>(Visual());
+    if (!kinematics)
+        return inherited::get_new_local_point_on_mesh(bone_id);
+
+    if (!kinematics->LL_BoneCount())
+        return inherited::get_new_local_point_on_mesh(bone_id);
+
+    if (!m_hit_bone_surface_areas_actual)
+        fill_hit_bone_surface_areas();
+
+    if (m_hit_bone_surface_areas.empty())
+        return inherited::get_new_local_point_on_mesh(bone_id);
+
+    float hit_bones_surface_area = 0.f;
+    hit_bone_surface_areas_type::const_iterator i = m_hit_bone_surface_areas.begin();
+    hit_bone_surface_areas_type::const_iterator const e = m_hit_bone_surface_areas.end();
+
+    for (; i != e; ++i)
+    {
+        if (!kinematics->LL_GetBoneVisible((*i).first))
+            continue;
+
+#ifdef DEBUG
+        SBoneShape const& shape = kinematics->LL_GetData((*i).first).shape;
+        VERIFY(shape.type != SBoneShape::stNone);
+        VERIFY(!shape.flags.is(SBoneShape::sfNoPickable));
+#endif
+
+        hit_bones_surface_area += (*i).second;
+    }
+
+    VERIFY2(hit_bones_surface_area > 0.f, make_string("m_hit_bone_surface_areas[%d]", m_hit_bone_surface_areas.size()));
+    float const selected_area = m_hit_bones_random.randF(hit_bones_surface_area);
+
+    i = m_hit_bone_surface_areas.begin();
+    for (float accumulator = 0.f; i != e; ++i)
+    {
+        if (!kinematics->LL_GetBoneVisible((*i).first))
+            continue;
+
+#ifdef DEBUG
+        SBoneShape const& shape = kinematics->LL_GetData((*i).first).shape;
+        VERIFY(shape.type != SBoneShape::stNone);
+        VERIFY(!shape.flags.is(SBoneShape::sfNoPickable));
+#endif
+
+        accumulator += (*i).second;
+        if (accumulator >= selected_area)
+            break;
+    }
+
+    VERIFY2(i != e, make_string("m_hit_bone_surface_areas[%d]", m_hit_bone_surface_areas.size()));
+    
+	SBoneShape const& shape = kinematics->LL_GetData((*i).first).shape;
+    bone_id = (*i).first;
+    Fvector result = Fvector().set(flt_max, flt_max, flt_max);
+    switch (shape.type)
+    {
+    case SBoneShape::stBox: 
+	{
+        Fmatrix transform;
+        shape.box.xform_full(transform);
+
+        Fvector direction;
+        u32 random_value = ::Random.randI(6);
+        Fvector random = {(random_value & 1) ? -1.f : 1.f, ::Random.randF(2.f) - 1.f, ::Random.randF(2.f) - 1.f};
+        random.normalize();
+
+        if (random_value < 2)
+            direction = Fvector().set(random.x, random.y, random.z);
+        else if (random_value < 4)
+            direction = Fvector().set(random.z, random.x, random.y);
+        else
+            direction = Fvector().set(random.y, random.z, random.x);
+
+        transform.transform_tiny(result, direction);
+        break;
+    }
+    case SBoneShape::stSphere: 
+	{
+        result.random_dir().mul(shape.sphere.R).add(shape.sphere.P);
+        break;
+    }
+    case SBoneShape::stCylinder: 
+	{
+        float const total_square = (shape.cylinder.m_height + shape.cylinder.m_radius);
+        float const random_value = ::Random.randF(total_square);
+        float const angle = ::Random.randF(2.f * PI);
+
+        float const x = shape.cylinder.m_direction.x;
+        float const y = shape.cylinder.m_direction.y;
+        float const z = shape.cylinder.m_direction.z;
+        Fvector normal = Fvector().set(y - z, z - x, x - y);
+
+        Fmatrix rotation = Fmatrix().rotation(shape.cylinder.m_direction, normal);
+        Fmatrix rotation_y = Fmatrix().rotateY(angle);
+        Fmatrix const transform = Fmatrix().mul_43(rotation, rotation_y);
+        transform.transform_dir(normal, Fvector().set(0.f, 0.f, 1.f));
+
+        float height, radius;
+        if (random_value < shape.cylinder.m_height)
+        {
+            height = random_value - shape.cylinder.m_height / 2.f;
+            radius = shape.cylinder.m_radius;
+        }
+        else
+        {
+            float const normalized_value = random_value - shape.cylinder.m_height;
+            height = shape.cylinder.m_height / 2.f * ((normalized_value < shape.cylinder.m_radius / 2.f) ? -1.f : 1.f);
+            radius = height > 0.f ? normalized_value - shape.cylinder.m_radius / 2.f : normalized_value;
+        }
+
+        normal.mul(radius);
+        result.mul(shape.cylinder.m_direction, height);
+        result.add(normal);
+        result.add(shape.cylinder.m_center);
+        break;
+    }
+    default: NODEFAULT;
+    }
+
+    return result;
+}
+
+Fvector CEntityAlive::get_last_local_point_on_mesh(Fvector const& last_point, u16 bone_id) const
+{
+    if (bone_id == u16(-1))
+        return inherited::get_last_local_point_on_mesh(last_point, bone_id);
+
+    IKinematics* const kinematics = smart_cast<IKinematics*>(Visual());
+    VERIFY(kinematics);
+
+    Fmatrix transform;
+    kinematics->Bone_GetAnimPos(transform, bone_id, u8(-1), false);
+
+    Fvector result;
+    transform.transform_tiny(result, last_point);
+
+    XFORM().transform_tiny(result, Fvector(result));
+    return result;
 }

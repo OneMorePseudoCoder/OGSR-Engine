@@ -72,6 +72,7 @@ void CActor::g_cl_ValidateMState(float dt, u32 mstate_wf)
             mstate_real &= ~(mcFall | mcJump);
         }
     }
+
     // закончить падение
     if (character_physics_support()->movement()->gcontact_Was)
     {
@@ -99,6 +100,7 @@ void CActor::g_cl_ValidateMState(float dt, u32 mstate_wf)
         m_fJumpTime = s_fJumpTime;
         mstate_real &= ~(mcFall | mcJump);
     }
+
     if ((mstate_wf & mcJump) == 0)
         m_bJumpKeyPressed = FALSE;
 

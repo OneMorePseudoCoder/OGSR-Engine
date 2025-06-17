@@ -146,13 +146,6 @@ void CSoundRender_Emitter::update(float dt)
             {
                 // switch to: PLAY
                 m_current_state = stPlaying;
-                /*
-                                u32 ptr						= calc_cursor(	fTimeStarted,
-                                                                            fTime,
-                                                                            get_length_sec(),
-                                                                            source()->m_wformat);
-                                set_cursor					(ptr);
-                */
                 SoundRender->i_start(this);
             }
         }
@@ -225,10 +218,6 @@ void CSoundRender_Emitter::update(float dt)
 
             if (fTimeStarted < 0.0f)
             {
-                //Log("fTimer_Value = ", SoundRender->fTimer_Value);
-                //Log("fTimeStarted = ", fTimeStarted);
-                //Log("fRemainingTime = ", fRemainingTime);
-                //Log("fPastTime = ", fPastTime);
                 R_ASSERT2(fTimeStarted >= 0.0f, "Possible error in sound rewind logic! See log.");
 
                 fTimeStarted = SoundRender->fTimer_Value;
@@ -284,6 +273,7 @@ IC void volume_lerp(float& c, float t, float s, float dt)
         mot = diff_a;
     c += (diff / diff_a) * mot;
 }
+
 #include "..\COMMON_AI\ai_sounds.h"
 BOOL CSoundRender_Emitter::update_culling(float dt)
 {
@@ -303,10 +293,7 @@ BOOL CSoundRender_Emitter::update_culling(float dt)
         }
 
         // Calc attenuated volume
-        float fade_scale =
-            bStopping || (att() * p_source.base_volume * p_source.volume * (owner_data->s_type == st_Effect ? psSoundVEffects * psSoundVFactor : psSoundVMusic) < psSoundCull) ?
-            -1.f :
-            1.f;
+        float fade_scale = bStopping || (att() * p_source.base_volume * p_source.volume * (owner_data->s_type == st_Effect ? psSoundVEffects * psSoundVFactor : psSoundVMusic) < psSoundCull) ? -1.f : 1.f;
         fade_volume += dt * 10.f * fade_scale;
 
         // Update occlusion
@@ -314,12 +301,14 @@ BOOL CSoundRender_Emitter::update_culling(float dt)
         volume_lerp(occluder_volume, occ, 1.f, dt);
         clamp(occluder_volume, 0.f, 1.f);
     }
+
     clamp(fade_volume, 0.f, 1.f);
+    
     // Update smoothing
-    smooth_volume = .9f * smooth_volume +
-        .1f * (p_source.base_volume * p_source.volume * (owner_data->s_type == st_Effect ? psSoundVEffects * psSoundVFactor : psSoundVMusic) * occluder_volume * fade_volume);
+    smooth_volume = .9f * smooth_volume + .1f * (p_source.base_volume * p_source.volume * (owner_data->s_type == st_Effect ? psSoundVEffects * psSoundVFactor : psSoundVMusic) * occluder_volume * fade_volume);
     if (smooth_volume < psSoundCull)
         return FALSE; // allow volume to go up
+    
     // Here we has enought "PRIORITY" to be soundable
     // If we are playing already, return OK
     // --- else check availability of resources
@@ -347,11 +336,11 @@ float CSoundRender_Emitter::att()
     }
     else
         att = 1.f;
+
     clamp(att, 0.f, 1.f);
 
     return att;
 }
 
 void CSoundRender_Emitter::update_environment(float dt)
-{
-}
+{}

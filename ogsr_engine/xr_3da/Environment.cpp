@@ -11,11 +11,8 @@
 
 #include "xr_input.h"
 
-//#include "resourcemanager.h"
-
 #include "IGame_Level.h"
 
-//#include "D3DUtils.h"
 #include "../xrcore/xrCore.h"
 
 #include "../Include/xrRender/EnvironmentRender.h"
@@ -31,7 +28,6 @@ static const float MAX_NOISE_FREQ = 0.03f;
 
 //#define WEATHER_LOGGING
 
-// real WEATHER->WFX transition time
 #define WFX_TRANS_TIME 5.f
 
 const float MAX_DIST_FACTOR = 0.95f;
@@ -163,6 +159,7 @@ void CEnvironment::Invalidate()
     Current[1] = nullptr;
     if (eff_LensFlare)
         eff_LensFlare->Invalidate();
+
     if (eff_Rain)
         eff_Rain->InvalidateState();
 }
@@ -219,23 +216,22 @@ float CEnvironment::NormalizeTime(float tm)
 
 void CEnvironment::SetWeather(shared_str name, bool forced)
 {
-    //.	static BOOL bAlready = FALSE;
-    //.	if(bAlready)	return;
     if (!name.empty())
     {
-        //.		bAlready = TRUE;
         EnvsMapIt it = WeatherCycles.find(name);
         if (it == WeatherCycles.end())
         {
             Msg("! Invalid weather name: %s", name.c_str());
             return;
         }
+
         R_ASSERT(it != WeatherCycles.end(), "Invalid weather name.", *name);
         CurrentName = it->first;
         if (forced)
         {
             Invalidate();
         }
+
         if (!b_wfx)
         {
             PrevWeatherName = (forced || CurrentWeatherName.empty()) ? it->first : CurrentWeatherName;
@@ -243,6 +239,7 @@ void CEnvironment::SetWeather(shared_str name, bool forced)
 
             CurrentWeather = &it->second;
         }
+
         if (forced)
         {
             SelectEnvs(fGameTime);
@@ -261,6 +258,7 @@ bool CEnvironment::SetWeatherFX(shared_str name)
 {
     if (b_wfx)
         return false;
+
     if (!name.empty())
     {
         EnvsMapIt it = WeatherFXs.find(name);
@@ -341,8 +339,12 @@ void CEnvironment::StopWeatherFX()
     VERIFY(CurrentCycleName.size());
     b_wfx = false;
     SetWeather(CurrentName, false);
+	Current[0]->on_unload();
+	Current[1]->on_unload();
     Current[0] = wfx_end_desc[0];
     Current[1] = wfx_end_desc[1];
+	Current[0]->on_prepare();
+	Current[1]->on_prepare();
 #ifdef WEATHER_LOGGING
     Msg("WFX - end. Weather: '%s' Desc: '%s'/'%s' GameTime: %3.2f", CurrentWeatherName.c_str(), Current[0]->m_identifier.c_str(), Current[1]->m_identifier.c_str(), fGameTime);
 #endif
@@ -394,6 +396,8 @@ void CEnvironment::SelectEnvs(float gt)
         VERIFY(!bWFX);
         // first or forced start
         SelectEnvs(CurrentWeather, Current[0], Current[1], gt);
+		Current[0]->on_prepare();
+		Current[1]->on_prepare();
         m_last_weather_shift = Device.dwFrame;
         g_pGameLevel->OnChangeCurrentWeather(Current[0]->m_identifier.c_str());
     }
@@ -418,8 +422,10 @@ void CEnvironment::SelectEnvs(float gt)
                 Current[0]->on_unload();
             }
 
+			Current[0]->on_unload();
             Current[0] = Current[1];
             SelectEnv(CurrentWeather, Current[1], gt);
+			Current[1]->on_prepare();
             m_last_weather_shift = Device.dwFrame;
             g_pGameLevel->OnChangeCurrentWeather(Current[0]->m_identifier.c_str());
 #ifdef WEATHER_LOGGING
@@ -561,19 +567,19 @@ void CEnvironment::calculate_dynamic_sun_dir() const
     float TC = 0.004297f + 0.107029f * _cos(g) - 1.837877f * _sin(g) - 0.837378f * _cos(2 * g) - 2.340475f * _sin(2 * g);
 
     //	IN degrees
-    float Longitude = -30.4f;
+    float constexpr Longitude = -30.4f;
 
     float SHA = (fGameTime / (DAY_LENGTH / 24) - 12) * 15 + Longitude + TC;
 
     //	Need this to correctly determine SHA sign
     if (SHA > 180)
         SHA -= 360;
+
     if (SHA < -180)
         SHA += 360;
 
     //	IN degrees
-    float const Latitude = 50.27f;
-    float const LatitudeR = deg2rad(Latitude);
+    float constexpr LatitudeR = deg2rad(50.27f);
 
     //	Now we can calculate the Sun Zenith Angle (SZA):
     float cosSZA = _sin(LatitudeR) * _sin(deg2rad(D)) + _cos(LatitudeR) * _cos(deg2rad(D)) * _cos(deg2rad(SHA));

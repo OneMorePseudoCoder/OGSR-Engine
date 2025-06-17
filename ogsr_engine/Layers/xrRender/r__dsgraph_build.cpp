@@ -13,9 +13,6 @@
 
 using namespace R_dsgraph;
 
-//u32 mapNormalItems::instance_cnt = 0;
-//u32 mapMatrixItems::instance_cnt = 0;
-
 // Static geometry optimization
 #define O_S_L1_S_LOW 10.f // geometry 3d volume size
 #define O_S_L1_D_LOW 150.f // distance, after which it is not rendered
@@ -61,7 +58,6 @@ using namespace R_dsgraph;
 #define O_S_L5_S_ULT 25000.f
 #define O_S_L5_D_ULT 300.f
 
-
 constexpr Fvector4 o_optimize_static_l1_dist{O_S_L1_D_LOW, O_S_L1_D_MED, O_S_L1_D_HII, O_S_L1_D_ULT};
 constexpr Fvector4 o_optimize_static_l1_size{O_S_L1_S_LOW, O_S_L1_S_MED, O_S_L1_S_HII, O_S_L1_S_ULT};
 constexpr Fvector4 o_optimize_static_l2_dist{O_S_L2_D_LOW, O_S_L2_D_MED, O_S_L2_D_HII, O_S_L2_D_ULT};
@@ -78,7 +74,6 @@ constexpr Fvector4 o_optimize_static_l5_size{O_S_L5_S_LOW, O_S_L5_S_MED, O_S_L5_
 extern float ps_r__LOD_k;
 
 // Aproximate, adjusted by fov, distance from camera to position (For right work when looking though binoculars and scopes)
-
 IC float GetDistFromCamera(const Fvector& from_position)
 {
     const float distance = Device.vCameraPosition.distance_to(from_position);
@@ -207,6 +202,7 @@ void R_dsgraph_structure::r_dsgraph_insert_dynamic(IRenderable* root, dxRender_V
 {
     if (pVisual->getVisData().marker[context_id] == marker)
         return;
+
     pVisual->getVisData().marker[context_id] = marker;
 
     ZoneScoped;
@@ -227,14 +223,13 @@ void R_dsgraph_structure::r_dsgraph_insert_dynamic(IRenderable* root, dxRender_V
     VERIFY(pVisual->shader._get());
     ShaderElement* sh_d = &*pVisual->shader->E[4];
     if (RImplementation.o.distortion && sh_d && sh_d->flags.bDistort && pmask[sh_d->flags.iPriority / 2])
-    {
         mapDistort.insert_anyway(distSQ, _MatrixItemS({SSA, root, pVisual, xform, sh_d}));
-    }
 
     // Select shader
     ShaderElement* sh = RImplementation.rimp_select_sh_dynamic(pVisual, distSQ, root ? root->renderable_HUD() : false, phase);
     if (nullptr == sh)
         return;
+
     if (!pmask[sh->flags.iPriority / 2])
         return;
 

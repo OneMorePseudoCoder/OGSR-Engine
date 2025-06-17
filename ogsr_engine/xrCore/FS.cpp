@@ -28,7 +28,6 @@ void unregister_file_mapping(void* address, const u32& size)
 
     FILE_MAPPINGS::iterator I = g_file_mappings.find(*(u32*)&address);
     VERIFY(I != g_file_mappings.end());
-    //	VERIFY2							((*I).second.first == size,make_string("file mapping sizes are different: %d -> %d",(*I).second.first,size));
     g_file_mapped_memory -= (*I).second.first;
     --g_file_mapped_count;
 
@@ -114,6 +113,7 @@ void IWriter::open_chunk(u32 type)
     chunk_pos.push(tell());
     w_u32(0); // the place for 'size'
 }
+
 void IWriter::close_chunk()
 {
     VERIFY(!chunk_pos.empty());
@@ -124,6 +124,7 @@ void IWriter::close_chunk()
     seek(pos);
     chunk_pos.pop();
 }
+
 u32 IWriter::chunk_size() // returns size of currently opened chunk, 0 otherwise
 {
     if (chunk_pos.empty())
@@ -156,6 +157,7 @@ void IWriter::w_chunk(u32 type, void* data, u32 size, const bool encrypt, const 
 
     close_chunk();
 }
+
 void IWriter::w_sdir(const Fvector& D)
 {
     Fvector C;
@@ -172,6 +174,7 @@ void IWriter::w_sdir(const Fvector& D)
     w_dir(C);
     w_float(mag);
 }
+
 void IWriter::w_printf(const char* format, ...)
 {
     va_list mark;
@@ -365,11 +368,10 @@ void IReader::r_stringZ(shared_str& dest)
 
     dest = tmp.c_str();
 
-    //advance(size);
-
     if (!eof())
         Pos++;
 }
+
 void IReader::r_stringZ(xr_string& dest)
 {
     char* src = (char*)(data + Pos);
@@ -382,8 +384,6 @@ void IReader::r_stringZ(xr_string& dest)
     }
 
     dest.assign(src, size);
-
-    //advance(size);
 
     if (!eof())
         Pos++;

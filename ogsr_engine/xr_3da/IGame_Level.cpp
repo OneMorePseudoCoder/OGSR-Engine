@@ -23,8 +23,6 @@ IGame_Level::IGame_Level()
     g_pGameLevel = this; // that is for pure_relcase
 }
 
-//#include "resourcemanager.h"
-
 IGame_Level::~IGame_Level()
 {
     // Render-level unload
@@ -59,8 +57,6 @@ void IGame_Level::net_Stop()
 
 BOOL IGame_Level::Load(u32 dwNum)
 {
-    // Initialize level data
-
     // Open
     g_pGamePersistent->LoadTitle("st_opening_stream");
     IReader* LL_Stream = FS.r_open(fsgame::level, fsgame::level_files::level);
@@ -96,8 +92,7 @@ BOOL IGame_Level::Load(u32 dwNum)
 }
 
 void IGame_Level::OnRender()
-{
-}
+{}
 
 void IGame_Level::OnFrame()
 {
@@ -122,4 +117,13 @@ void IGame_Level::OnFrame()
             Sounds_Random[id].set_range(10, 200);
         }
     }
+}
+
+void IGame_Level::LL_CheckTextures()
+{
+    u32 m_base, c_base, m_lmaps, c_lmaps;
+    Device.m_pRender->ResourcesGetMemoryUsage(m_base, c_base, m_lmaps, c_lmaps);
+
+    Msg("* t-report - base: %d, %d K", c_base, m_base / 1024);
+    Msg("* t-report - lmap: %d, %d K", c_lmaps, m_lmaps / 1024);
 }

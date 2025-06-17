@@ -100,9 +100,6 @@ CCF_Skeleton::CCF_Skeleton(CObject* O) : ICollisionForm(O, cftObject)
     // getVisData
     IRenderVisual* pVisual = O->Visual();
     ASSERT_FMT(pVisual, "pVisual is null! section [%s]", O->cNameSect().c_str());
-    // IKinematics* K	= PKinematics(pVisual); VERIFY(K,"Can't create skeleton without Kinematics.",*O->cNameVisual());
-    // IKinematics* K	= PKinematics(pVisual); VERIFY(K,"Can't create skeleton without Kinematics.",*O->cNameVisual());
-    // bv_box.set		(K->vis.box);
     bv_box.set(pVisual->getVisData().box);
     bv_box.getsphere(bv_sphere.P, bv_sphere.R);
     vis_mask.zero();
@@ -114,7 +111,6 @@ void CCF_Skeleton::BuildState()
     IRenderVisual* pVisual = owner->Visual();
     IKinematics* K = PKinematics(pVisual);
 
-    //K->CalculateBones();
 #pragma todo("Simp: CalculateBones_InvalidateSkeleton")
     K->CalculateBones_Invalidate();
     K->CalculateBones(TRUE);
@@ -152,11 +148,10 @@ void CCF_Skeleton::BuildState()
 
         switch (element.type)
         {
-        case SBoneShape::stBox: {
+        case SBoneShape::stBox: 
+		{
             const Fobb& B = shape.box;
             B.xform_get(ME);
-
-            // VERIFY( DET(ME)>EPS, ( make_string("0 scale bone matrix, %d \n", I->elem_id ) + dbg_object_full_dump_string( owner ) ).c_str()  );
 
             element.b_hsize.set(B.m_halfsize);
             // prepare matrix World to Element
@@ -177,14 +172,16 @@ void CCF_Skeleton::BuildState()
             }
         }
         break;
-        case SBoneShape::stSphere: {
+        case SBoneShape::stSphere: 
+		{
             const Fsphere& S = shape.sphere;
             Mbone.transform_tiny(element.s_sphere.P, S.P);
             L2W.transform_tiny(element.s_sphere.P);
             element.s_sphere.R = S.R;
         }
         break;
-        case SBoneShape::stCylinder: {
+        case SBoneShape::stCylinder: 
+		{
             const Fcylinder& C = shape.cylinder;
             Mbone.transform_tiny(element.c_cylinder.m_center, C.m_center);
             L2W.transform_tiny(element.c_cylinder.m_center);
@@ -253,7 +250,8 @@ BOOL CCF_Skeleton::_RayQuery(const collide::ray_defs& Q, collide::rq_results& R)
     if (res == Fsphere::rpNone)
         return FALSE;
 
-    auto iterate_elements = [&](const ElementVec& xr_vector) {
+    auto iterate_elements = [&](const ElementVec& xr_vector) 
+	{
         BOOL bHIT = FALSE;
         for (auto& I : xr_vector)
         {

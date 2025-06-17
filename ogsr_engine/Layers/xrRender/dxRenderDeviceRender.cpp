@@ -93,8 +93,6 @@ void dxRenderDeviceRender::SetupStates()
 {
     HW.Caps.Update();
 
-    //	TODO: DX10: Implement Resetting of render states into default mode
-    // VERIFY(!"dxRenderDeviceRender::SetupStates not implemented.");
     SSManager.SetMaxAnisotropy(ps_r__tf_Anisotropic);
     SSManager.SetMipLODBias(ps_r__tf_Mipbias);
 }
@@ -176,14 +174,6 @@ void dxRenderDeviceRender::ResourcesDumpMemoryUsage() { Resources->_DumpMemoryUs
 
 dxRenderDeviceRender::DeviceState dxRenderDeviceRender::GetDeviceState()
 {
-    //const auto result = HW.m_pSwapChain->Present(0, DXGI_PRESENT_TEST);
-
-    //switch (result)
-    //{
-    //// Check if the device is ready to be reset
-    //case DXGI_ERROR_DEVICE_RESET: return dsNeedReset;
-    //}
-
     return dsOK;
 }
 

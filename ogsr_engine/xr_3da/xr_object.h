@@ -198,6 +198,10 @@ public:
 
 public:
     virtual bool register_schedule() const { return true; }
+	
+public:
+    virtual Fvector get_new_local_point_on_mesh(u16& bone_id) const;
+    virtual Fvector get_last_local_point_on_mesh(Fvector const& last_point, u16 bone_id) const;
 };
 
 #pragma pack(pop)

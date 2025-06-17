@@ -278,8 +278,8 @@ void CStats::Show()
             F.OutSet(200, 0);
             F.SetHeightI(f_base_size);
 #if 0
-		for (u32 it=0; it<errors.size(); it++)
-			F.OutNext("%s",errors[it].c_str());
+			for (u32 it=0; it<errors.size(); it++)
+				F.OutNext("%s",errors[it].c_str());
 #else
             for (u32 it = (u32)_max(int(0), (int)errors.size() - g_ErrorLineCount); it < errors.size(); it++)
                 F.OutNext("%s", errors[it].c_str());

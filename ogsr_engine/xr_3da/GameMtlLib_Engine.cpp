@@ -8,19 +8,9 @@ void DestroySounds(SoundVec& lst)
     for (auto& it : lst)
         it.destroy();
 }
-/*
-void DestroyMarks(ShaderVec& lst)
-{
-    for (ShaderIt it=lst.begin(); lst.end() != it; ++it)
-        it->destroy();
-}
-*/
 
 void DestroyPSs(PSVec& lst)
-{
-    //	for (PSIt it=lst.begin(); lst.end() != it; ++it)
-    //		Device.Resources->Delete(*it);
-}
+{}
 
 void CreateSounds(SoundVec& lst, xr_vector<std::string>& buf)
 {
@@ -43,20 +33,6 @@ void CreateSoundNames(xr_vector<std::string>& lst, LPCSTR buf)
         lst.push_back(s);
     }
 }
-
-/*
-void CreateMarks(ShaderVec& lst, LPCSTR buf)
-{
-    string256	tmp;
-    int cnt		=_GetItemCount(buf);	R_ASSERT(cnt<=GAMEMTL_SUBITEM_COUNT);
-    ref_shader	s;
-    for (int k=0; k<cnt; ++k)
-    {
-        s.create		("effects\\wallmark",_GetItem(buf,k,tmp));
-        lst.push_back	(s);
-    }
-}
-*/
 
 void CreateMarks(IWallMarkArray* pMarks, LPCSTR buf)
 {

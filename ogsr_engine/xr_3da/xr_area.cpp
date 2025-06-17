@@ -16,13 +16,16 @@ void IGame_Level::SoundEvent_Register(ref_sound_data_ptr S, float range)
 {
     if (!g_bLoaded)
         return;
+
     if (!S)
         return;
+
     if (S->g_object && S->g_object->getDestroy())
     {
         S->g_object = nullptr;
         return;
     }
+
     if (nullptr == S->feedback)
         return;
 
@@ -94,8 +97,7 @@ void IGame_Level::SoundEvent_Dispatch()
         VERIFY(D.dest && D.source);
         if (D.source->feedback && D.source->g_object)
         {
-            D.dest->feel_sound_new(D.source->g_object, D.source->g_type, D.source->g_userdata,
-                                   D.source->feedback->is_2D() ? Device.vCameraPosition : D.source->feedback->get_params()->position, D.power);
+            D.dest->feel_sound_new(D.source->g_object, D.source->g_type, D.source->g_userdata, D.source->feedback->is_2D() ? Device.vCameraPosition : D.source->feedback->get_params()->position, D.power);
         }
         snd_Events.pop_back();
     }

@@ -77,6 +77,7 @@ EVENT CEventAPI::Create(const char* N)
     CS.Leave();
     return X;
 }
+
 void CEventAPI::Destroy(EVENT& E)
 {
     CS.Enter();
@@ -109,12 +110,14 @@ void CEventAPI::Handler_Detach(EVENT& E, IEventReceiver* H)
     Destroy(E);
     CS.Leave();
 }
+
 void CEventAPI::Signal(EVENT E, u64 P1, u64 P2)
 {
     CS.Enter();
     E->Signal(P1, P2);
     CS.Leave();
 }
+
 void CEventAPI::Signal(LPCSTR N, u64 P1, u64 P2)
 {
     CS.Enter();
@@ -123,6 +126,7 @@ void CEventAPI::Signal(LPCSTR N, u64 P1, u64 P2)
     Destroy(E);
     CS.Leave();
 }
+
 void CEventAPI::Defer(EVENT E, u64 P1, u64 P2)
 {
     CS.Enter();
@@ -133,6 +137,7 @@ void CEventAPI::Defer(EVENT E, u64 P1, u64 P2)
     Events_Deferred.back().P2 = P2;
     CS.Leave();
 }
+
 void CEventAPI::Defer(LPCSTR N, u64 P1, u64 P2)
 {
     CS.Enter();

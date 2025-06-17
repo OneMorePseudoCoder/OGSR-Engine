@@ -322,7 +322,7 @@ protected:
     void choose_food();
     void choose_weapon(ALife::EWeaponPriorityType weapon_priority_type);
     void choose_medikit();
-    // void						choose_detector					();
+    void choose_detector();
     void choose_equipment();
 
     void select_items();
@@ -570,6 +570,9 @@ private:
 public:
     IC const u32& throw_time_interval() const;
     IC void throw_time_interval(const u32& value);
+
+private:
+    virtual BOOL AlwaysTheCrow();
 
 public:
     DECLARE_SCRIPT_REGISTER_FUNCTION

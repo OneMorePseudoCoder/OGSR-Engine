@@ -29,13 +29,11 @@ CInput::CInput(bool bExclusive, int deviceForInit)
 
     // KEYBOARD
     if (deviceForInit & keyboard_device_key)
-        CHK_DX(CreateInputDevice(&pKeyboard, GUID_SysKeyboard, &c_dfDIKeyboard
-            , (is_exclusive_mode ? DISCL_EXCLUSIVE : DISCL_NONEXCLUSIVE) | DISCL_FOREGROUND, KEYBOARDBUFFERSIZE));
+        CHK_DX(CreateInputDevice(&pKeyboard, GUID_SysKeyboard, &c_dfDIKeyboard, (is_exclusive_mode ? DISCL_EXCLUSIVE : DISCL_NONEXCLUSIVE) | DISCL_FOREGROUND, KEYBOARDBUFFERSIZE));
 
     // MOUSE
     if (deviceForInit & mouse_device_key)
-        CHK_DX(CreateInputDevice(&pMouse, GUID_SysMouse, &c_dfDIMouse2
-            , (is_exclusive_mode ? DISCL_EXCLUSIVE : DISCL_NONEXCLUSIVE) | DISCL_FOREGROUND | DISCL_NOWINKEY, MOUSEBUFFERSIZE));
+        CHK_DX(CreateInputDevice(&pMouse, GUID_SysMouse, &c_dfDIMouse2, (is_exclusive_mode ? DISCL_EXCLUSIVE : DISCL_NONEXCLUSIVE) | DISCL_FOREGROUND | DISCL_NOWINKEY, MOUSEBUFFERSIZE));
 
     Device.seqAppActivate.Add(this);
     Device.seqAppDeactivate.Add(this);
@@ -72,7 +70,6 @@ CInput::~CInput(void)
 HRESULT CInput::CreateInputDevice(LPDIRECTINPUTDEVICE8* device, GUID guidDevice, const DIDATAFORMAT* pdidDataFormat, u32 dwFlags, u32 buf_size) const
 {
     // Obtain an interface to the input device
-    //.	CHK_DX( pDI->CreateDeviceEx( guidDevice, IID_IDirectInputDevice8, (void**)device, NULL ) );
     CHK_DX(pDI->CreateDevice(guidDevice, /*IID_IDirectInputDevice8,*/ device, NULL));
 
     // Set the device data format. Note: a data format specifies which
@@ -154,7 +151,7 @@ void CInput::KeyUpdate()
         if (KBState[key])
         {
             if (this->is_exclusive_mode && (key == DIK_LSHIFT || key == DIK_RSHIFT) && (this->iGetAsyncKeyState(DIK_LMENU) || this->iGetAsyncKeyState(DIK_RMENU)))
-                PostMessage(gGameWindow, WM_INPUTLANGCHANGEREQUEST, 2, 0); //Переключили язык. В эксклюзивном режиме это обязательно для правильной работы функции DikToChar
+				ActivateKeyboardLayout((HKL)HKL_NEXT, KLF_REORDER); //Переключили язык. В эксклюзивном режиме это обязательно для правильной работы функции DikToChar
 
             cbStack.back()->IR_OnKeyboardPress(key);
         }
@@ -261,7 +258,8 @@ void CInput::MouseUpdate()
     for (int i = 0; i < COUNT_MOUSE_BUTTONS; i++)
         mouse_prev[i] = mouseState[i];
 
-    auto processMouseButton = [&](int i, bool state) {
+    auto processMouseButton = [&](int i, bool state) 
+	{
         if (state)
         {
             mouseState[i] = TRUE;
@@ -303,7 +301,8 @@ void CInput::MouseUpdate()
         case DIMOFS_BUTTON4:
         case DIMOFS_BUTTON5:
         case DIMOFS_BUTTON6:
-        case DIMOFS_BUTTON7: {
+        case DIMOFS_BUTTON7: 
+		{
             int btn = od[i].dwOfs - DIMOFS_BUTTON0;
 
             if (swapped)
@@ -315,7 +314,8 @@ void CInput::MouseUpdate()
             }
 
             processMouseButton(btn, od[i].dwData & 0x80);
-        }break;
+        }
+		break;
         }
     }
 
@@ -350,7 +350,8 @@ void CInput::MouseUpdate()
 
     const u32 dwCurTime = Device.dwTimeGlobal;
 
-    auto isButtonOnHold = [&](int i) {
+    auto isButtonOnHold = [&](int i) 
+	{
         if (mouseState[i] && mouse_prev[i] && dwCurTime - mouseTime[i] >= MOUSE_HOLD_TIME)
             cbStack.back()->IR_OnMouseHold(i);
     };
@@ -382,8 +383,10 @@ void CInput::MouseUpdate()
 void CInput::iCapture(IInputReceiver* p)
 {
     VERIFY(p);
+
     if (pMouse)
         MouseUpdate();
+
     if (pKeyboard)
         KeyUpdate();
 
@@ -412,6 +415,7 @@ void CInput::iRelease(IInputReceiver* p)
     { // we are not topmost receiver, so remove the nearest one
         u32 cnt = cbStack.size();
         for (; cnt > 0; --cnt)
+		{
             if (cbStack[cnt - 1] == p)
             {
                 xr_vector<IInputReceiver*>::iterator it = cbStack.begin();
@@ -419,6 +423,7 @@ void CInput::iRelease(IInputReceiver* p)
                 cbStack.erase(it);
                 break;
             }
+		}
     }
 }
 

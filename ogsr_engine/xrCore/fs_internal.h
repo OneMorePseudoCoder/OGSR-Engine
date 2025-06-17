@@ -44,6 +44,7 @@ public:
             }
         }
     }
+
     // kernel
     virtual void w(const void* _ptr, u32 count)
     {
@@ -53,11 +54,13 @@ public:
             R_ASSERT3(W == count, "Can't write mem block to file. Disk maybe full.", _sys_errlist[errno]);
         }
     };
+
     virtual void seek(u32 pos)
     {
         if (0 != hf)
             fseek(hf, pos, SEEK_SET);
     };
+
     virtual u32 tell() { return (0 != hf) ? ftell(hf) : 0; };
     virtual bool valid() { return (0 != hf); }
     virtual int flush() { return fflush(hf); }

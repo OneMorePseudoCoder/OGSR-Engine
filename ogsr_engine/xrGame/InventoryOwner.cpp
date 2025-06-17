@@ -158,8 +158,14 @@ void CInventoryOwner::net_Destroy()
 
 void CInventoryOwner::save(NET_Packet& output_packet)
 {
-    if (inventory().GetActiveSlot() == NO_ACTIVE_SLOT)
-        output_packet.w_u8((u8)(-1));
+	if (inventory().GetActiveSlot() == NO_ACTIVE_SLOT) 
+	{
+		u8 slot = (u8)(-1);
+		auto pActor = smart_cast<CActor*>(this);
+		if (pActor && pActor->MovingState() & mcClimb && inventory().GetPrevActiveSlot() != NO_ACTIVE_SLOT)
+			slot = u8(inventory().GetPrevActiveSlot());
+		output_packet.w_u8(slot);
+	}
     else
         output_packet.w_u8((u8)inventory().GetActiveSlot());
 
@@ -513,11 +519,6 @@ void CInventoryOwner::set_money(u32 amount, bool bSendEvent)
         CGameObject* object = smart_cast<CGameObject*>(this);
         CSE_ALifeTraderAbstract* traderAbstract = smart_cast<CSE_ALifeTraderAbstract*>(object->alife_object());
         traderAbstract->m_dwMoney = m_money;
-
-        /*NET_Packet packet;
-        object->u_EventGen(packet, GE_MONEY, object->ID());
-        packet.w_u32(m_money);
-        object->u_EventSend(packet);*/
     }
 }
 

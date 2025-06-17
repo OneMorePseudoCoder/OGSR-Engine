@@ -34,7 +34,7 @@ enum EStalkerSounds
     eStalkerSoundFriendlyGrenadeAlarm,
     eStalkerSoundNeedBackup,
     eStalkerSoundRunningInDanger,
-    //		eStalkerSoundWalkingInDanger,
+    eStalkerSoundWalkingInDanger,
     eStalkerSoundKillWounded,
     eStalkerSoundEnemyCriticallyWounded,
     eStalkerSoundEnemyKilledOrWounded,

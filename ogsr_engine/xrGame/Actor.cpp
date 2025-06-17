@@ -94,11 +94,12 @@ CActor::CActor() : CEntityAlive(), current_ik_cam_shift(0)
 {
     encyclopedia_registry = xr_new<CEncyclopediaRegistryWrapper>();
     game_news_registry = xr_new<CGameNewsRegistryWrapper>();
+
     // Cameras
     cameras[eacFirstEye] = xr_new<CCameraFirstEye>(this);
     cameras[eacFirstEye]->Load("actor_firsteye_cam");
 
-    if constexpr (true /*strstr(Core.Params,"-psp")*/)
+    if constexpr (true)
         psActorFlags.set(AF_PSP, TRUE);
     else
         psActorFlags.set(AF_PSP, FALSE);
@@ -120,6 +121,7 @@ CActor::CActor() : CEntityAlive(), current_ik_cam_shift(0)
     fPrevCamPos = 0.0f;
     vPrevCamDir.set(0.f, 0.f, 1.f);
     fCurAVelocity = 0.0f;
+
     // эффекторы
     pCamBobbing = 0;
     m_pSleepEffector = NULL;
@@ -256,7 +258,6 @@ void CActor::reload(LPCSTR section)
 
 void CActor::Load(LPCSTR section)
 {
-    // Msg						("Loading actor: %s",section);
     inherited::Load(section);
     material().Load(section);
     CInventoryOwner::Load(section);
@@ -381,6 +382,7 @@ void CActor::Load(LPCSTR section)
         int cnt = _GetItemCount(hit_snds);
         string128 tmp;
         VERIFY(cnt != 0);
+        sndHit[hit_type].reserve(cnt);
         for (int i = 0; i < cnt; ++i)
         {
             sndHit[hit_type].emplace_back().create(_GetItem(hit_snds, i, tmp), st_Effect, sg_SourceType);
@@ -453,6 +455,7 @@ void CActor::Hit(SHit* pHDS)
         sprintf_s(err, "Unknown/unregistered hit type [%d]", HDS.hit_type);
         R_ASSERT2(0, err);
     }
+
 #ifdef DEBUG
     if (ph_dbg_draw_mask.test(phDbgCharacterControl))
     {

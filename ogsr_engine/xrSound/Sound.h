@@ -49,18 +49,21 @@ enum
     sq_HIGH,
     sq_forcedword = u32(-1)
 };
+
 enum
 {
     sg_Undefined = 0,
     sg_SourceType = u32(-1),
     sg_forcedword = u32(-1),
 };
+
 enum
 {
     sm_Looped = (1ul << 0ul), //!< Looped
     sm_2D = (1ul << 1ul), //!< 2D mode
     sm_forcedword = u32(-1),
 };
+
 enum esound_type
 {
     st_Effect = 0,
@@ -174,6 +177,7 @@ public:
     virtual LPCSTR file_name() const = 0;
     virtual u16 channels_num() const = 0;
     virtual u32 bytes_total() const = 0;
+	virtual float max_distance() const = 0;
 };
 
 /// definition (Sound Source)

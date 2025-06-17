@@ -86,8 +86,6 @@ void Touch::feel_touch_update(Fvector& C, float R, const std::function<void(CObj
             d--;
         }
     }
-
-    //. Engine.Sheduler.Slice	();
 }
 
 void Touch::feel_touch_relcase(CObject* O) { feel_touch_relcase2(O); }

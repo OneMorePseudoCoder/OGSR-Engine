@@ -114,6 +114,7 @@ public:
     // specified object is visible now or
     // some time ago <= current_params.m_still_visible_time
     bool visible_now(const CGameObject* game_object) const;
+    Fvector visible_vispoint(CGameObject* game_object) const;
 
 public:
     void enable(const CObject* object, bool enable);
@@ -130,7 +131,7 @@ public:
     IC const VISIBLES& objects() const;
     IC const RAW_VISIBLES& raw_objects() const;
     IC const NOT_YET_VISIBLES& not_yet_visible_objects() const;
-    /*IC*/ const CVisionParameters& current_state() const;
+    const CVisionParameters& current_state() const;
     squad_mask_type mask() const;
 
 public:
@@ -145,6 +146,7 @@ public:
 
 private:
     void clear_delayed_objects();
+    bool actorShooting() const;
 };
 
 #include "visual_memory_manager_inline.h"

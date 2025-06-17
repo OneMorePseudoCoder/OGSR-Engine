@@ -45,7 +45,6 @@ BOOL CRenderDevice::Begin()
     default: R_ASSERT(0);
     }
 
-    
     ::Render->Begin();
 
     g_bRendering = TRUE;
@@ -81,11 +80,7 @@ void CRenderDevice::End()
         {
             SetWindowPos(Device.m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
-            //m_pRender->updateGamma();
-            
             ::Sound->set_master_volume(1.f);
-
-            //Memory.mem_compact();
 
             Msg("* MEMORY USAGE: %d K", Memory.mem_usage() / 1024);
             Msg("* End of synchronization A[%d] R[%d]", b_is_Active, b_is_Ready);
@@ -173,13 +168,11 @@ void CRenderDevice::OnCameraUpdated(bool from_actor)
     ::Render->SetCacheXformOld(mView_old, mProject_old);
 
     mView_hud.build_camera_dir(Fvector{}, vCameraDirection, vCameraTop);
-    mProject_hud.build_projection(deg2rad(psHUD_FOV <= 1.f ? psHUD_FOV * Device.fFOV : psHUD_FOV), fASPECT, HUD_VIEWPORT_NEAR,
-                                  g_pGamePersistent->Environment().CurrentEnv->far_plane);
+    mProject_hud.build_projection(deg2rad(psHUD_FOV <= 1.f ? psHUD_FOV * Device.fFOV : psHUD_FOV), fASPECT, HUD_VIEWPORT_NEAR, g_pGamePersistent->Environment().CurrentEnv->far_plane);
     mFullTransform_hud.mul(mProject_hud, mView_hud);
 
     mView_hud2.set(mView);
-    mProject_hud2.build_projection(deg2rad(psHUD_FOV <= 1.f ? psHUD_FOV * Device.fFOV : psHUD_FOV), fASPECT, HUD_VIEWPORT_NEAR,
-                                   g_pGamePersistent->Environment().CurrentEnv->far_plane);
+    mProject_hud2.build_projection(deg2rad(psHUD_FOV <= 1.f ? psHUD_FOV * Device.fFOV : psHUD_FOV), fASPECT, HUD_VIEWPORT_NEAR, g_pGamePersistent->Environment().CurrentEnv->far_plane);
     mFullTransform_hud2.mul(mProject_hud2, mView_hud2);
 }
 
@@ -193,23 +186,8 @@ struct _SoundProcessor : public pureFrame
         ::Sound->update(Device.vCameraPosition, Device.vCameraDirection, Device.vCameraTop /*, Device.Paused()*/);
         Device.Statistic->Sound.End();
     }
-} g_sound_update;
-
-#pragma todo("SIMP: для этого кода нужны переделки в xrSound")
-/*
-struct _SoundRender : public pureFrame
-{
-    virtual void OnFrame()
-    {
-        ZoneScopedN("_SoundRender");
-
-        // Msg							("------------- sound: %d [%3.2f,%3.2f,%3.2f]",u32(Device.dwFrame),VPUSH(Device.vCameraPosition));
-        Device.Statistic->Sound.Begin();
-        ::Sound->render();
-        Device.Statistic->Sound.End();
-    }
-} g_sound_render;
-*/
+} 
+g_sound_update;
 
 void CRenderDevice::on_idle()
 {
@@ -253,7 +231,8 @@ void CRenderDevice::on_idle()
         const auto SecondThreadStartTime = std::chrono::high_resolution_clock::now();
 
         // allow secondary thread to do its job
-        auto awaiter = TTAPI->submit([this] {
+        auto awaiter = TTAPI->submit([this] 
+		{
             ZoneScoped;
 
             const auto SecondThreadTasksStartTime = std::chrono::high_resolution_clock::now();
@@ -484,11 +463,6 @@ void CRenderDevice::Pause(BOOL bOn, BOOL bTimer, BOOL bSound, LPCSTR reason)
 {
     static int snd_emitters_ = -1;
 
-#ifdef DEBUG
-//	Msg("pause [%s] timer=[%s] sound=[%s] reason=%s",bOn?"ON":"OFF", bTimer?"ON":"OFF", bSound?"ON":"OFF", reason);
-#endif // DEBUG
-
-
     if (bOn)
     {
         if (!Paused())
@@ -510,9 +484,6 @@ void CRenderDevice::Pause(BOOL bOn, BOOL bTimer, BOOL bSound, LPCSTR reason)
         if (bSound && ::Sound)
         {
             snd_emitters_ = ::Sound->pause_emitters(true);
-#ifdef DEBUG
-//			Log("snd_emitters_[true]",snd_emitters_);
-#endif // DEBUG
         }
     }
     else
@@ -529,9 +500,6 @@ void CRenderDevice::Pause(BOOL bOn, BOOL bTimer, BOOL bSound, LPCSTR reason)
             if (snd_emitters_ > 0) // avoid crash
             {
                 snd_emitters_ = ::Sound->pause_emitters(false);
-#ifdef DEBUG
-//				Log("snd_emitters_[false]",snd_emitters_);
-#endif // DEBUG
             }
             else
             {
@@ -541,7 +509,6 @@ void CRenderDevice::Pause(BOOL bOn, BOOL bTimer, BOOL bSound, LPCSTR reason)
             }
         }
     }
-
 }
 
 BOOL CRenderDevice::Paused() { return g_pauseMngr->Paused(); }

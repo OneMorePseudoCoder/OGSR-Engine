@@ -36,24 +36,11 @@ bool CRender::InFieldOfViewR(Fvector pos, float max_dist, bool check_direction)
     if (dist > max_dist)
         return false;
 
-    //if (check_direction)
-    //{
-    //    Fvector toObject;
-    //    toObject.sub(pos, Device.vCameraPosition);
-    //    toObject.normalize();
-
-    //    const Fvector cameraDirection = Device.vCameraDirection;
-    //    const float dotProduct = cameraDirection.dotproduct(toObject);
-    //    if (dotProduct < 0 && dist > 2)
-    //        return false;
-    //}
-
     return true;
 }
 
 void CRender::main_pass_static(R_dsgraph_structure& dsgraph)
 {
-
     ZoneScoped;
 
     bool sectors_added = false;
@@ -106,8 +93,7 @@ void CRender::main_pass_static(R_dsgraph_structure& dsgraph)
         }
 
         // Calculate sector(s) and their objects
-        if (last_sector_id != IRender_Sector::INVALID_SECTOR_ID
-            && last_sector_id != largest_sector_id)
+        if (last_sector_id != IRender_Sector::INVALID_SECTOR_ID && last_sector_id != largest_sector_id)
         {
             constexpr int options = CPortalTraverser::VQ_HOM + CPortalTraverser::VQ_SSA + CPortalTraverser::VQ_FADE;
 
@@ -146,10 +132,7 @@ void CRender::main_pass_static(R_dsgraph_structure& dsgraph)
         for (const auto& r_sector : dsgraph.Sectors)
         {
             dxRender_Visual* root = r_sector->root();
-            // for (u32 v_it = 0; v_it < sector->r_frustums.size(); v_it++)
-            {
-                dsgraph.add_static(root, ViewBase, ViewBase.getMask());
-            }
+            dsgraph.add_static(root, ViewBase, ViewBase.getMask());
         }
     }
 }
@@ -245,34 +228,14 @@ void CRender::main_pass_dynamic(R_dsgraph_structure& dsgraph, bool fill_lights)
             // casting is faster then using getVis method
             vis_data& v_orig = (renderable->renderable.visual)->getVisData();
 
-            // Occlusion
-
-            // vis_data v_copy = v_orig;
-            // v_copy.box.xform(renderable->renderable.xform);
-
-            // BOOL bVisible = HOM.visible(v_copy);
-            // v_orig.marker = v_copy.marker;
-            // v_orig.hom_frame = v_copy.hom_frame;
-            // v_orig.hom_tested = v_copy.hom_tested;
-            // if (!bVisible)
-            //     continue; // exit loop on frustums
-
             Fvector pos;
             renderable->renderable.xform.transform_tiny(pos, v_orig.sphere.P);
 
             if (!renderable->renderable.visual->ignore_optimization && !InFieldOfViewR(pos, ps_r__opt_dist, true))
                 continue;
 
-            //for (auto& view : sector->r_frustums)
-            {
-                //if (!view.testSphere_dirty(spatial->spatial.sphere.P, spatial->spatial.sphere.R))
-                //    continue;
-
-                // Rendering
-                renderable->renderable_Render(dsgraph.context_id, renderable);
-
-                //break; // exit loop on frustums
-            }
+            // Rendering
+            renderable->renderable_Render(dsgraph.context_id, renderable);
         }
     }
 
@@ -315,7 +278,8 @@ void CRender::Render()
     if (ps_pnv_mode < 2 && (ps_r_pp_aa_mode == DLSS || ps_r_pp_aa_mode == FSR2 || ps_r_pp_aa_mode == TAA || ps_r2_ls_flags.test(R2FLAG_DBG_TAA_JITTER_ENABLE)))
     {
         // Halton sequence generator
-        auto halton = [](const int index, const int base) {
+        auto halton = [](const int index, const int base) 
+		{
             float result = 0.0f;
             float f = 1.0f / base;
             int i = index;
@@ -329,7 +293,8 @@ void CRender::Render()
         };
 
         // Генерация jitter смещений для TAA
-        auto getHaltonJitterOffset = [&](float& jitterX, float& jitterY, const u32 frameIndex) {
+        auto getHaltonJitterOffset = [&](float& jitterX, float& jitterY, const u32 frameIndex) 
+		{
             jitterX = halton(frameIndex + 1, 2) - 0.5f;
             jitterY = halton(frameIndex + 1, 3) - 0.5f;
         };
@@ -378,10 +343,6 @@ void CRender::Render()
 
     cmd_list.set_xform_world(Fidentity);
     cmd_list.set_xform_world_old(Fidentity);
-
-    // Main calc start
-    // r_main.sync();
-    // Main calc end
 
     Target->phase_scene_prepare();
 
@@ -525,15 +486,9 @@ void CRender::Render()
         {
             if (nullptr == it)
                 continue;
-            // try
-            //{
+
             for (int id = 0; id < R__NUM_CONTEXTS; ++id)
                 it->svis[id].flushoccq();
-            /*}
-            catch (...)
-            {
-                Msg("! Failed to flush-OCCq on light [%d] %X", it, *(u32*)(&Lights_LastFrame[it]));
-            }*/
         }
         Lights_LastFrame.clear();
     }
@@ -544,7 +499,6 @@ void CRender::Render()
 
         light_Package LP_normal_copy = LP_normal;
 
-        //LP_normal_copy.vis_update();
         LP_normal_copy.sort();
 
         render_lights(LP_normal_copy);

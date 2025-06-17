@@ -36,8 +36,7 @@ BOOL CBulletManager::test_callback(const collide::ray_defs& rd, CObject* object,
     bullet_test_callback_data* pData = (bullet_test_callback_data*)params;
     SBullet* bullet = pData->pBullet;
 
-    if ((object->ID() == bullet->parent_id) && //-V595
-        (bullet->fly_dist < PARENT_IGNORE_DIST) && (!bullet->flags.ricochet_was))
+    if ((object->ID() == bullet->parent_id) && (bullet->fly_dist < PARENT_IGNORE_DIST) && (!bullet->flags.ricochet_was))
     {
         return FALSE;
     }
@@ -52,9 +51,9 @@ BOOL CBulletManager::test_callback(const collide::ray_defs& rd, CObject* object,
             if ((NULL != cform) && (cftObject == cform->Type()))
             {
                 CActor* actor = smart_cast<CActor*>(entity);
-                // CAI_Stalker* stalker= smart_cast<CAI_Stalker*>(entity);
+                CAI_Stalker* stalker= smart_cast<CAI_Stalker*>(entity);
                 //  в кого попали?
-                if (actor /* || stalker*/)
+                if (actor || stalker)
                 {
                     // попали в актера или сталкера
                     Fsphere S = cform->getSphere();
@@ -330,26 +329,6 @@ void CBulletManager::DynamicObjectHit(CBulletManager::_event& E)
     //отправить хит пораженному объекту
     if (E.bullet.flags.allow_sendhit && !E.Repeated)
     {
-        /*
-                NET_Packet		P;
-        //		CGameObject::u_EventGen	(P,(AddStatistic)? GE_HIT_STATISTIC : GE_HIT,E.R.O->ID());
-                P.w_u16			(E.bullet.parent_id);
-                P.w_u16			(E.bullet.weapon_id);
-                P.w_dir			(original_dir);
-                P.w_float		(power);
-                P.w_s16			((s16)E.R.element);
-                P.w_vec3		(position_in_bone_space);
-                P.w_float		(impulse);
-                P.w_u16			(u16(E.bullet.hit_type));
-                if (E.bullet.hit_type == ALife::eHitTypeFireWound)
-                    P.w_float	(E.bullet.ap);
-
-                if (AddStatistic)
-                    P.w_u32(E.bullet.m_dwID);
-
-                CGameObject::u_EventSend (P);
-        */
-
         SHit Hit = SHit(power, original_dir, NULL, u16(E.R.element), position_in_bone_space, impulse, E.bullet.hit_type, E.bullet.ap, E.bullet.flags.aim_bullet);
 
         Hit.GenHeader(u16(GE_HIT) & 0xffff, E.R.O->ID());
@@ -360,7 +339,6 @@ void CBulletManager::DynamicObjectHit(CBulletManager::_event& E)
         NET_Packet np;
         Hit.Write_Packet(np);
 
-        //		Msg("Hit sended: %d[%d,%d]", Hit.whoID, Hit.weaponID, Hit.BulletID);
         CGameObject::u_EventSend(np);
     }
 }
@@ -437,9 +415,8 @@ std::pair<float, float> CBulletManager::ObjectHit(SBullet* bullet, const Fvector
     float ricoshet_factor = bullet->dir.dotproduct(tgt_dir);
 
     float f = Random.randF(0.5f, 1.f);
-    // float f				= Random.randF	(0.0f,0.3);
-    //	if(shoot_factor<RICOCHET_THRESHOLD &&  )
-    if (((f + shoot_factor) < ricoshet_factor) && bullet->flags.allow_ricochet)
+
+    if (((f + shoot_factor) < ricoshet_factor) && !mtl->Flags.test(SGameMtl::flNoRicoshet) && bullet->flags.allow_ricochet)
     {
         //уменьшение скорости полета в зависимости
         //от угла падения пули (чем прямее угол, тем больше потеря)
@@ -476,12 +453,6 @@ std::pair<float, float> CBulletManager::ObjectHit(SBullet* bullet, const Fvector
     }
     else
     {
-        //пробивание материала
-        //уменьшить скорость пропорцианально потраченому импульсу
-        // float speed_lost = fis_zero(bullet->hit_impulse) ?	1.f : 		1.f - impulse/bullet->hit_impulse;
-        // clamp (speed_lost, 0.f , 1.f);
-        // float speed_lost = shoot_factor;
-
         bullet->speed *= mtl->fShootFactor;
         energy_lost = 1.f - bullet->speed / old_speed;
         impulse = bullet->hit_impulse * speed_factor * energy_lost;

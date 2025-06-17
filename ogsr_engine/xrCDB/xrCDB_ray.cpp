@@ -14,23 +14,27 @@ struct alignas(16) vec_t : public Fvector3
 {
     float pad;
 };
+
 struct alignas(16) aabb_t
 {
     vec_t min;
     vec_t max;
 };
+
 struct alignas(16) ray_t
 {
     vec_t pos;
     vec_t inv_dir;
     vec_t fwd_dir;
 };
+
 struct ray_segment_t
 {
     float t_near, t_far;
 };
 
 ICF u32& uf(float& x) { return (u32&)x; }
+
 ICF BOOL isect_fpu(const Fvector& min, const Fvector& max, const ray_t& ray, Fvector& coord)
 {
     Fvector MaxT;
@@ -92,6 +96,7 @@ ICF BOOL isect_fpu(const Fvector& min, const Fvector& max, const ray_t& ray, Fve
     u32 WhichPlane = 0;
     if (MaxT[1] > MaxT[0])
         WhichPlane = 1;
+
     if (MaxT[2] > MaxT[WhichPlane])
         WhichPlane = 2;
 
@@ -109,6 +114,7 @@ ICF BOOL isect_fpu(const Fvector& min, const Fvector& max, const ray_t& ray, Fve
             return false;
         return true;
     }
+
     if (1 == WhichPlane)
     { // 0 & 2
         coord[0] = ray.pos[0] + MaxT[1] * ray.fwd_dir[0];
@@ -119,6 +125,7 @@ ICF BOOL isect_fpu(const Fvector& min, const Fvector& max, const ray_t& ray, Fve
             return false;
         return true;
     }
+
     if (2 == WhichPlane)
     { // 0 & 1 //KRodin: это условие тоже всегда истинно. //-V547
         coord[0] = ray.pos[0] + MaxT[2] * ray.fwd_dir[0];
@@ -145,8 +152,7 @@ ICF BOOL isect_fpu(const Fvector& min, const Fvector& max, const ray_t& ray, Fve
 #define muxhps(low, high) _mm_movehl_ps((low), (high)) // low{a,b,c,d}|high{e,f,g,h} = {c,d,g,h}
 
 static constexpr auto flt_plus_inf = std::numeric_limits<float>::infinity();
-alignas(16) static constexpr float ps_cst_plus_inf[] = {flt_plus_inf, flt_plus_inf, flt_plus_inf, flt_plus_inf},
-                                   ps_cst_minus_inf[] = {-flt_plus_inf, -flt_plus_inf, -flt_plus_inf, -flt_plus_inf};
+alignas(16) static constexpr float ps_cst_plus_inf[] = {flt_plus_inf, flt_plus_inf, flt_plus_inf, flt_plus_inf}, ps_cst_minus_inf[] = {-flt_plus_inf, -flt_plus_inf, -flt_plus_inf, -flt_plus_inf};
 
 ICF BOOL isect_sse(const aabb_t& box, const ray_t& ray, float& dist)
 {
@@ -187,7 +193,6 @@ ICF BOOL isect_sse(const aabb_t& box, const ray_t& ray, float& dist)
     const BOOL ret = _mm_comige_ss(lmax, _mm_setzero_ps()) & _mm_comige_ss(lmax, lmin);
 
     storess(lmin, &dist);
-    // storess	(lmax, &rs.t_far);
 
     return ret;
 }
@@ -217,17 +222,13 @@ public:
         if (!bUseSSE)
         {
             // for FPU - zero out inf
-            if (_abs(D.x) > flt_eps)
-            {}
-            else
+            if (_abs(D.x) < flt_eps)
                 ray.inv_dir.x = 0;
-            if (_abs(D.y) > flt_eps)
-            {}
-            else
+
+            if (_abs(D.y) < flt_eps)
                 ray.inv_dir.y = 0;
-            if (_abs(D.z) > flt_eps)
-            {}
-            else
+
+            if (_abs(D.z) < flt_eps)
                 ray.inv_dir.z = 0;
         }
     }
@@ -240,14 +241,12 @@ public:
         BB.max.add(bCenter, bExtents);
         return isect_fpu(BB.min, BB.max, ray, coord);
     }
+
     // sse
     ICF BOOL _box_sse(const Fvector& bCenter, const Fvector& bExtents, float& dist)
     {
         aabb_t box;
-        /*
-            box.min.sub (bCenter,bExtents);	box.min.pad = 0;
-            box.max.add	(bCenter,bExtents); box.max.pad = 0;
-        */
+
         __m128 CN = _mm_unpacklo_ps(_mm_load_ss((float*)&bCenter.x), _mm_load_ss((float*)&bCenter.y));
         CN = _mm_movelh_ps(CN, _mm_load_ss((float*)&bCenter.z));
         __m128 EX = _mm_unpacklo_ps(_mm_load_ss((float*)&bExtents.x), _mm_load_ss((float*)&bExtents.y));
@@ -365,6 +364,7 @@ public:
             R.dummy = tris[prim].dummy;
         }
     }
+
     void _stab(const AABBNoLeafNode* node)
     {
         // Should help
@@ -561,4 +561,5 @@ void COLLIDER::ray_query(u32 ray_mode, const MODEL* m_def, const Fvector& r_star
             }
         }
     }
+    sort();
 }

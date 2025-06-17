@@ -106,7 +106,6 @@ namespace text_editor
 		void delete_selected_forward();
 		void delete_word_back();
 		void delete_word_forward();
-		void SwitchKL();
 
 		void assign_char_pairs(init_mode mode);
 		void create_key_state(u32 const dik, key_state state);

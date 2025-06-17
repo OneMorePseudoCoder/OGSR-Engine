@@ -752,3 +752,12 @@ u32 CScriptGameObject::GetMeshCountHUD() const
     return 0;
 }
 /************************* End Add *************************************/
+
+Fvector CScriptGameObject::VisibilityVisPoint(CScriptGameObject* tpLuaGameObject)
+{
+    ASSERT_FMT(tpLuaGameObject, "[%s]: %s: null object!", __FUNCTION__, cName().c_str());
+    CCustomMonster* monster = smart_cast<CCustomMonster*>(&object());
+    ASSERT_FMT(monster, "[%s]: %s not CCustomMonster", __FUNCTION__, cName().c_str());
+
+    return monster->memory().visual().visible_vispoint(&tpLuaGameObject->object());
+}

@@ -375,9 +375,6 @@
     <ClCompile Include="IGame_Level.cpp">
       <Filter>Game API</Filter>
     </ClCompile>
-    <ClCompile Include="IGame_Level_check_textures.cpp">
-      <Filter>Game API</Filter>
-    </ClCompile>
     <ClCompile Include="IGame_Persistent.cpp">
       <Filter>Game API</Filter>
     </ClCompile>

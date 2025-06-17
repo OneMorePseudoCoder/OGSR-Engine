@@ -5,7 +5,7 @@
 float psShedulerCurrent = 10.f;
 float psShedulerTarget = 10.f;
 float psShedulerMax = 10.f;
-constexpr float psShedulerReaction = 1.f; // 0.1f;
+constexpr float psShedulerReaction = 1.f;
 
 BOOL g_bSheduleInProgress = FALSE;
 
@@ -30,7 +30,6 @@ void CSheduler::internal_Registration()
         {
             // register
             // search for paired "unregister"
-
             BOOL bFoundAndErased = FALSE;
             for (u32 pair = it + 1; pair < Registration.size(); pair++)
             {
@@ -46,11 +45,8 @@ void CSheduler::internal_Registration()
             // register if non-paired
             if (!bFoundAndErased)
             {
-                //Msg("SCHEDULER: internal register [%s][%x][%s]", *R.Object->shedule_Name(), R.Object, R.RT ? "true" : "false");
                 internal_Register(R.Object, R.RT);
             }
-            //else
-            //    Msg("SCHEDULER: internal register skipped, because unregister found [%s][%x][%s]", "unknown", R.Object, R.RT ? "true" : "false");
         }
         else
         {
@@ -134,7 +130,6 @@ bool CSheduler::Registered(ISheduled* object) const
         for (; I != E; ++I)
             if ((*I).Object == object)
             {
-                //				Msg				("0x%8x found in RT",object);
                 count = 1;
                 break;
             }
@@ -145,7 +140,6 @@ bool CSheduler::Registered(ISheduled* object) const
         for (; I != E; ++I)
             if ((*I).Object == object)
             {
-                //				Msg				("0x%8x found in non-RT",object);
                 VERIFY(!count);
                 count = 1;
                 break;
@@ -158,7 +152,6 @@ bool CSheduler::Registered(ISheduled* object) const
         for (; I != E; ++I)
             if ((*I).Object == object)
             {
-                //				Msg				("0x%8x found in process items",object);
                 VERIFY(!count);
                 count = 1;
                 break;
@@ -174,13 +167,11 @@ bool CSheduler::Registered(ISheduled* object) const
         {
             if ((*I).OP)
             {
-                //				Msg				("0x%8x found in registration on register",object);
                 VERIFY(!count);
                 ++count;
             }
             else
             {
-                //				Msg				("0x%8x found in registration on UNregister",object);
                 VERIFY(count == 1);
                 --count;
             }
@@ -201,8 +192,6 @@ void CSheduler::Register(ISheduled* A, BOOL RT)
     R.RT = RT;
     R.Object = A;
     R.Object->shedule.b_RT = RT;
-
-    //Msg("SCHEDULER: register [%s][%x]", *A->shedule_Name(), A);
 }
 
 void CSheduler::Unregister(ISheduled* A, bool force)
@@ -280,7 +269,6 @@ void CSheduler::ProcessStep()
 
             m_current_step_obj = curr.Object;
 
-            // if (!Core.DebugFlags.test(xrCore::dbg_DisableObjectsScheduler))
             curr.Object->shedule_Update(std::clamp(elapsed, 1u, std::max(curr.Object->shedule.t_max, 1000u)));
 
             if (!m_current_step_obj)
@@ -296,8 +284,6 @@ void CSheduler::ProcessStep()
             next.dwTimeOfLastExecute = dwTime;
             next.Object = curr.Object;
             next.scheduled_name = curr.Object->shedule_Name();
-
-            //cnt++;
         }
         __except (ExceptStackTrace("[CSheduler::ProcessStep2] stack trace:\n"))
         {
@@ -311,23 +297,13 @@ void CSheduler::ProcessStep()
             // we have maxed out the load - increase heap
             psShedulerTarget += (psShedulerReaction * 3);
 
-            // if (Core.DebugFlags.test(xrCore::dbg_TraceScheduler))
-            {
-                // Msg("Break ProcessStep. Processed: [%u], left in queue: [%u]", ItemsProcessed.size(), Items.size());
-                if (ItemsProcessed.size() == 1) // кто то жрет все время на кадре
-                    Msg("! Single item [%s] took whole update frame!!!", ItemsProcessed.front().scheduled_name.c_str());
-            }
+            if (ItemsProcessed.size() == 1) // кто то жрет все время на кадре
+                Msg("! Single item [%s] took whole update frame!!!", ItemsProcessed.front().scheduled_name.c_str());
 
             stopped = true;
             break;
         }
     }
-
-    //if (/*Core.DebugFlags.test(xrCore::dbg_TraceScheduler) &&*/ !prefetch && t_total.GetElapsed_ms() > 20)
-    //    Msg("Long ProcessStep !!! duration [%u]ms. updated: [%u] objects!", t_total.GetElapsed_ms(), cnt);
-
-    //if (prefetch)
-    //    Msg("Prefetch frame, updated: [%u] objects!", cnt);
 
     // Push "processed" back
     Items.insert(Items.end(), std::make_move_iterator(ItemsProcessed.begin()), std::make_move_iterator(ItemsProcessed.end()));

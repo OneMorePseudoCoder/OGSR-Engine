@@ -35,7 +35,6 @@ CTexture::CTexture()
 
 CTexture::~CTexture()
 {
-    // Msg("! destroy texture name [%s]", loadedName.c_str());
     UnloadImpl();
 
     // release external reference
@@ -51,7 +50,7 @@ void CTexture::surface_set(ID3DBaseTexture* surf)
         surf->AddRef();
 
     _RELEASE(pSurface); 
-    //_RELEASE(m_pSRView); // по идеи тут тоже надо релиз делать так как ниже вызывается CreateShaderResourceView но оно все ломает. потому оставил так
+
     m_pSRView = nullptr;
 
     _RELEASE(srv_all);
@@ -154,9 +153,6 @@ void CTexture::surface_set(ID3DBaseTexture* surf)
 
 ID3DBaseTexture* CTexture::surface_get() const
 {
-    //if (pSurface)
-    //    pSurface->AddRef();
-
     return pSurface;
 }
 
@@ -178,6 +174,7 @@ void CTexture::apply_load(CBackend& cmd_list, u32 dwStage)
         Load();
     else
         PostLoad();
+
     bind(cmd_list, dwStage);
 };
 
@@ -223,17 +220,14 @@ void CTexture::apply_theora(CBackend& cmd_list, u32 dwStage)
 
         const u32 _w = pTheora->Width(false);
 
-        // R_CHK(T2D->LockRect(0,&R,&rect,0));
-
         R_CHK(HW.get_context(cmd_list.context_id)->Map(T2D, 0, D3D_MAP_WRITE_DISCARD, 0, &mapData));
         R_ASSERT(mapData.RowPitch == int(_w * 4));
         int _pos = 0;
         pTheora->DecompressFrame((u32*)mapData.pData, _w - pTheora->Width(true), _pos);
         VERIFY(u32(_pos) == pTheora->Height(true) * _w);
-        // R_CHK				(T2D->UnlockRect(0));
         HW.get_context(cmd_list.context_id)->Unmap(T2D, 0);
     }
-    // CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
+
     Apply(cmd_list, dwStage);
 }
 
@@ -247,24 +241,21 @@ void CTexture::apply_avi(CBackend& cmd_list, u32 dwStage)
         ID3DTexture2D* T2D = (ID3DTexture2D*)pSurface;
         D3D_MAPPED_TEXTURE2D mapData;
 
-        // R_CHK	(T2D->LockRect(0,&R,NULL,0));
-
         R_CHK(HW.get_context(cmd_list.context_id)->Map(T2D, 0, D3D_MAP_WRITE_DISCARD, 0, &mapData));
         R_ASSERT(mapData.RowPitch == int(pAVI->m_dwWidth * 4));
         BYTE* ptr;
         pAVI->GetFrame(&ptr);
         CopyMemory(mapData.pData, ptr, pAVI->m_dwWidth * pAVI->m_dwHeight * 4);
-        // R_CHK	(T2D->UnlockRect(0));
         HW.get_context(cmd_list.context_id)->Unmap(T2D, 0);
     }
-    // CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
+
     Apply(cmd_list, dwStage);
 }
 
 void CTexture::apply_seq(CBackend& cmd_list, u32 dwStage)
 {
     // SEQ
-    const u32 frame = Device.dwTimeContinual / seqMSPF; // Device.dwTimeGlobal
+    const u32 frame = Device.dwTimeContinual / seqMSPF;
     const u32 frame_data = m_seqSRView.size();
     if (flags.seqCycles)
     {
@@ -280,13 +271,12 @@ void CTexture::apply_seq(CBackend& cmd_list, u32 dwStage)
         pSurface = seqDATA[frame_id];
         m_pSRView = m_seqSRView[frame_id];
     }
-    // CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
+
     Apply(cmd_list, dwStage);
 }
 
 void CTexture::apply_normal(CBackend& cmd_list, u32 dwStage)
 {
-    // CHK_DX(HW.pDevice->SetTexture(dwStage,pSurface));
     Apply(cmd_list, dwStage);
 }
 
@@ -535,8 +525,6 @@ void CTexture::UnloadImpl()
     string_path msg_buff;
     xr_sprintf(msg_buff, sizeof(msg_buff), "* Unloading texture [%s] pSurface RefCount=", cName.c_str());
 #endif // DEBUG
-
-    // if (flags.bLoaded) Msg("* Unloaded: %s",cName.c_str());
 
     flags.bLoaded = false;
 

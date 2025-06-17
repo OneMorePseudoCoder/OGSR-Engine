@@ -42,6 +42,7 @@ CObject* CObjectList::FindObjectByName(shared_str name)
             return (*I);
     return NULL;
 }
+
 CObject* CObjectList::FindObjectByName(LPCSTR name) { return FindObjectByName(shared_str(name)); }
 
 CObject* CObjectList::FindObjectByCLS_ID(CLASS_ID cls)
@@ -62,14 +63,9 @@ CObject* CObjectList::FindObjectByCLS_ID(CLASS_ID cls)
 
 void CObjectList::o_remove(xr_vector<CObject*>& v, CObject* O)
 {
-    //.	if(O->ID()==1026)
-    //.	{
-    //.		Log("ahtung");
-    //.	}
     xr_vector<CObject*>::iterator _i = std::find(v.begin(), v.end(), O);
     VERIFY(_i != v.end());
     v.erase(_i);
-    //.	Msg("---o_remove[%s][%d]", O->cName().c_str(), O->ID() );
 }
 
 void CObjectList::o_activate(CObject* O)
@@ -79,6 +75,7 @@ void CObjectList::o_activate(CObject* O)
     objects_active.push_back(O);
     O->MakeMeCrow();
 }
+
 void CObjectList::o_sleep(CObject* O)
 {
     VERIFY(O && !O->processing_enabled());
@@ -98,24 +95,15 @@ void CObjectList::SingleUpdate(CObject* O)
         O->IAmNotACrowAnyMore();
         O->UpdateCL();
         VERIFY3(O->dbg_update_cl == Device.dwFrame, "Broken sequence of calls to 'UpdateCL'", *O->cName());
-        //		if (O->getDestroy())
-        //		{
-        //			destroy_queue.push_back(O);
-        //.			Msg				("- destroy_queue.push_back %s[%d] frame [%d]",O->cName().c_str(), O->ID(), Device.dwFrame);
-        //		}
-        //		else
         if (O->H_Parent() && (O->H_Parent()->getDestroy() || O->H_Root()->getDestroy()))
         {
             // Push to destroy-queue if it isn't here already
-            Msg("! ERROR: incorrect destroy sequence for object[%d:%s], section[%s], parent[%d:%s]", O->ID(), *O->cName(), *O->cNameSect(), O->H_Parent()->ID(),
-                *O->H_Parent()->cName());
-            //			if (std::find(destroy_queue.begin(),destroy_queue.end(),O)==destroy_queue.end())
-            //				destroy_queue.push_back	(O);
+            Msg("! ERROR: incorrect destroy sequence for object[%d:%s], section[%s], parent[%d:%s]", O->ID(), *O->cName(), *O->cNameSect(), O->H_Parent()->ID(), *O->H_Parent()->cName());
         }
     }
+
     if (O->getDestroy() && (Device.dwFrame != O->dwFrame_UpdateCL))
     {
-        //		destroy_queue.push_back(O);
         Msg("- !!!processing_enabled ->destroy_queue.push_back %s[%d] frame [%d]", O->cName().c_str(), O->ID(), Device.dwFrame);
     }
 }
@@ -124,6 +112,7 @@ void clear_crow_vec(xr_vector<CObject*>& o)
 {
     for (u32 _it = 0; _it < o.size(); _it++)
         o[_it]->IAmNotACrowAnyMore();
+
     o.clear();
 }
 
@@ -204,7 +193,6 @@ void CObjectList::ProcessDestroyQueue()
         for (int it = destroy_queue.size() - 1; it >= 0; it--)
         {
             CObject* O = destroy_queue[it];
-            // Msg( "Object [%x]", O );
             O->setDestroy(TRUE);
 #ifdef DEBUG
             Msg("Destroying object[%x] [%d][%s] frame[%d]", O, O->ID(), O->cName().c_str(), Device.dwFrame);
@@ -221,7 +209,6 @@ void CObjectList::net_Register(CObject* O)
     R_ASSERT(O);
     ASSERT_FMT(map_NETID.find(O->ID()) == map_NETID.end(), "%s ID[%u] already registered", O->cName().c_str(), O->ID());
     map_NETID.insert(mk_pair(O->ID(), O));
-    // Msg			("-------------------------------- Register: %s",O->cName());
 }
 
 void CObjectList::net_Unregister(CObject* O)
@@ -229,7 +216,6 @@ void CObjectList::net_Unregister(CObject* O)
     xr_map<u32, CObject*>::iterator it = map_NETID.find(O->ID());
     if ((it != map_NETID.end()) && (it->second == O))
     {
-        // Msg			("-------------------------------- Unregster: %s",O->cName());
         map_NETID.erase(it);
     }
 }
@@ -278,7 +264,6 @@ void CObjectList::Unload()
 CObject* CObjectList::Create(LPCSTR name)
 {
     CObject* O = g_pGamePersistent->ObjectPool.create(name);
-    //	Msg("CObjectList::Create [%x]%s", O, name);
     objects_sleeping.push_back(O);
     return O;
 }

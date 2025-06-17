@@ -17,6 +17,7 @@ void CSoundRender_Emitter::set_position(const Fvector& pos)
 
     bMoved = TRUE;
 }
+
 // Перемотка звука на заданную секунду [rewind snd to target time] --#SM+#--
 void CSoundRender_Emitter::set_time(float t)
 {
@@ -33,7 +34,6 @@ CSoundRender_Emitter::CSoundRender_Emitter(void)
     dbg_ID = ++incrementalID;
 #endif
     target = NULL;
-    //.	source						= NULL;
     owner_data = NULL;
     smooth_volume = 1.f;
     occluder_volume = 1.f;

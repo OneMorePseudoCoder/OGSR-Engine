@@ -30,7 +30,8 @@ struct ENGINE_API ip_address
             u8 a4;
         };
         u32 data;
-    } m_data;
+    } 
+    m_data;
     void set(LPCSTR src_string);
 
     bool operator==(const ip_address& other) const
@@ -68,7 +69,6 @@ public:
     IPureServer* server;
     bool operator==(ClientID const&) = delete;
 };
-
 
 class ENGINE_API IPureServer
 {

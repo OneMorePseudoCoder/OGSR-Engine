@@ -49,6 +49,7 @@ void Surface_FormatExt(FREE_IMAGE_FORMAT f)
         xr_free(base);
     }
 }
+
 void Surface_Init()
 {
     Msg("* ImageLibrary version: %s", FreeImage_GetVersion());

@@ -35,14 +35,13 @@ void CBlender_Compile::r_dx10Texture(LPCSTR ResourceName, LPCSTR texture)
     VERIFY(ResourceName);
     if (!texture)
         return;
-    //
+
     string256 TexName;
     xr_strcpy(TexName, texture);
     fix_texture_name(TexName);
 
     // Find index
     const ref_constant C = ctable.get(ResourceName);
-    // VERIFY(C);
     if (!C)
         return;
 
@@ -54,7 +53,6 @@ void CBlender_Compile::r_dx10Texture(LPCSTR ResourceName, LPCSTR texture)
 
 void CBlender_Compile::i_dx10Address(u32 s, u32 address)
 {
-    // VERIFY(s!=u32(-1));
     if (s == u32(-1))
     {
         Msg("s != u32(-1)");
@@ -99,17 +97,13 @@ void CBlender_Compile::i_dx10Filter(u32 s, u32 _min, u32 _mip, u32 _mag)
 
 u32 CBlender_Compile::r_dx10Sampler(LPCSTR ResourceName)
 {
-    //	TEST
-    // return ((u32)-1);
     VERIFY(ResourceName);
     string256 name;
     xr_strcpy(name, ResourceName);
     fix_texture_name(name);
 
     // Find index
-    // ref_constant C			= ctable.get(ResourceName);
     const ref_constant C = ctable.get(name);
-    // VERIFY(C);
     if (!C)
         return u32(-1);
 
@@ -194,6 +188,7 @@ u32 CBlender_Compile::r_dx10Sampler(LPCSTR ResourceName)
         RS.SetSAMP(stage, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
         RS.SetSAMP(stage, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
     }
+
     // Linear, clamp
     if (0 == xr_strcmp(ResourceName, "SamplerLinearClamp"))
     {
@@ -248,8 +243,7 @@ void CBlender_Compile::r_Pass(LPCSTR _vs, LPCSTR _gs, LPCSTR _ps, bool bFog, BOO
     }
 }
 
-void CBlender_Compile::r_TessPass(LPCSTR vs, LPCSTR hs, LPCSTR ds, LPCSTR gs, LPCSTR ps, bool bFog, BOOL bZtest, BOOL bZwrite, BOOL bABlend, D3DBLEND abSRC, D3DBLEND abDST,
-                                  BOOL aTest, u32 aRef)
+void CBlender_Compile::r_TessPass(LPCSTR vs, LPCSTR hs, LPCSTR ds, LPCSTR gs, LPCSTR ps, bool bFog, BOOL bZtest, BOOL bZwrite, BOOL bABlend, D3DBLEND abSRC, D3DBLEND abDST, BOOL aTest, u32 aRef)
 {
     r_Pass(vs, gs, ps, bFog, bZtest, bZwrite, bABlend, abSRC, abDST, aTest, aRef);
 
@@ -275,6 +269,5 @@ void CBlender_Compile::r_End()
     dest.state = DEV->_CreateState(RS.GetContainer());
     dest.T = DEV->_CreateTextureList(passTextures);
     dest.C = nullptr;
-    // ref_matrix_list temp(nullptr); ???
     SH->passes.push_back(DEV->_CreatePass(dest));
 }

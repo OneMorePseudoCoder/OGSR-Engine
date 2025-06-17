@@ -143,14 +143,7 @@ void CRenderTarget::u_setrt(CBackend& cmd_list, u32 W, u32 H, ID3DRenderTargetVi
 // 2D texgen (texture adjustment matrix)
 void CRenderTarget::u_compute_texgen_screen(CBackend& cmd_list, Fmatrix& m_Texgen)
 {
-    // float	_w						= float(Device.dwWidth);
-    // float	_h						= float(Device.dwHeight);
-    // float	o_w						= (.5f / _w);
-    // float	o_h						= (.5f / _h);
-    const Fmatrix m_TexelAdjust = {0.5f, 0.0f, 0.0f, 0.0f, 0.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-                                   //	Removing half pixel offset
-                                   // 0.5f + o_w,			0.5f + o_h,			0.0f,			1.0f
-                                   0.5f, 0.5f, 0.0f, 1.0f};
+    const Fmatrix m_TexelAdjust = {0.5f, 0.0f, 0.0f, 0.0f, 0.0f, -0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.0f, 1.0f};
     m_Texgen.mul(m_TexelAdjust, cmd_list.xforms.m_wvp);
 }
 
@@ -164,9 +157,8 @@ void CRenderTarget::u_compute_texgen_jitter(CBackend& cmd_list, Fmatrix& m_Texge
     // rescale - tile it
     const float scale_X = float(Device.dwWidth) / float(TEX_jitter);
     const float scale_Y = float(Device.dwHeight) / float(TEX_jitter);
-    // float	offset			= (.5f / float(TEX_jitter));
+
     m_TexelAdjust.scale(scale_X, scale_Y, 1.f);
-    // m_TexelAdjust.translate_over(offset,	offset,	0	);
     m_Texgen_J.mulA_44(m_TexelAdjust);
 }
 
@@ -222,7 +214,7 @@ CRenderTarget::CRenderTarget()
 
     param_color_base = color_rgba(127, 127, 127, 0);
     param_color_gray = color_rgba(85, 85, 85, 0);
-    // param_color_add		= color_rgba(0,0,0,			0);
+
     param_color_add.set(0.0f, 0.0f, 0.0f);
 
     dwAccumulatorClearMark = 0;
@@ -386,8 +378,7 @@ CRenderTarget::CRenderTarget()
         constexpr DXGI_FORMAT fmt = DXGI_FORMAT_R8G8B8A8_UNORM;
         constexpr u32 w = BLOOM_size_X, h = BLOOM_size_Y;
         constexpr u32 fvf_build = D3DFVF_XYZRHW | D3DFVF_TEX4 | D3DFVF_TEXCOORDSIZE2(0) | D3DFVF_TEXCOORDSIZE2(1) | D3DFVF_TEXCOORDSIZE2(2) | D3DFVF_TEXCOORDSIZE2(3);
-        constexpr u32 fvf_filter = (u32)D3DFVF_XYZRHW | D3DFVF_TEX8 | D3DFVF_TEXCOORDSIZE4(0) | D3DFVF_TEXCOORDSIZE4(1) | D3DFVF_TEXCOORDSIZE4(2) | D3DFVF_TEXCOORDSIZE4(3) |
-            D3DFVF_TEXCOORDSIZE4(4) | D3DFVF_TEXCOORDSIZE4(5) | D3DFVF_TEXCOORDSIZE4(6) | D3DFVF_TEXCOORDSIZE4(7);
+        constexpr u32 fvf_filter = (u32)D3DFVF_XYZRHW | D3DFVF_TEX8 | D3DFVF_TEXCOORDSIZE4(0) | D3DFVF_TEXCOORDSIZE4(1) | D3DFVF_TEXCOORDSIZE4(2) | D3DFVF_TEXCOORDSIZE4(3) | D3DFVF_TEXCOORDSIZE4(4) | D3DFVF_TEXCOORDSIZE4(5) | D3DFVF_TEXCOORDSIZE4(6) | D3DFVF_TEXCOORDSIZE4(7);
         rt_Bloom_1.create(r2_RT_bloom1, w, h, fmt);
         rt_Bloom_2.create(r2_RT_bloom2, w, h, fmt);
         g_bloom_build.create(fvf_build, RImplementation.Vertex.Buffer(), RImplementation.QuadIB);
@@ -421,8 +412,7 @@ CRenderTarget::CRenderTarget()
 
     // COMBINE
     {
-        constexpr D3DVERTEXELEMENT9 dwDecl[]{{0, 0, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0}, // pos+uv
-                                             D3DDECL_END()};
+        constexpr D3DVERTEXELEMENT9 dwDecl[]{{0, 0, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0}, D3DDECL_END()};
 
         s_combine.create("combine");
         s_combine_volumetric.create("combine_volumetric");
@@ -480,7 +470,6 @@ CRenderTarget::CRenderTarget()
             desc.SampleDesc.Count = 1;
             desc.SampleDesc.Quality = 0;
             desc.Format = DXGI_FORMAT_R8G8B8A8_SNORM;
-            // desc.Usage = D3D_USAGE_IMMUTABLE;
             desc.Usage = D3D_USAGE_DEFAULT;
             desc.BindFlags = D3D_BIND_SHADER_RESOURCE;
             desc.CPUAccessFlags = 0;
@@ -525,7 +514,6 @@ CRenderTarget::CRenderTarget()
     s_postprocess.create("postprocess");
     g_postprocess.create(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_SPECULAR | D3DFVF_TEX3, RImplementation.Vertex.Buffer(), RImplementation.QuadIB);
 
-    //
     reset_target_dimensions();
 }
 
@@ -545,18 +533,14 @@ CRenderTarget::~CRenderTarget()
     pSurf = t_envmap_1->surface_get();
     if (pSurf)
         pSurf->Release();
+
     _SHOW_REF("t_envmap_1 - #small", pSurf);
-    //_SHOW_REF("t_envmap_0 - #small",t_envmap_0->pSurface);
-    //_SHOW_REF("t_envmap_1 - #small",t_envmap_1->pSurface);
 #endif // DEBUG
 
     t_envmap_0->surface_set(nullptr);
     t_envmap_1->surface_set(nullptr);
     t_envmap_0.destroy();
     t_envmap_1.destroy();
-
-    //	TODO: DX10: Check if we need old style SMAPs
-    //	_RELEASE					(rt_smap_ZB);
 
     // Jitter
     for (int it = 0; it < TEX_jitter_count; it++)
@@ -610,7 +594,6 @@ void CRenderTarget::increment_light_marker(CBackend& cmd_list)
 {
     dwLightMarkerID += 2;
 
-    // if (dwLightMarkerID>10)
     const u32 iMaxMarkerValue = 255;
 
     if (dwLightMarkerID > iMaxMarkerValue)
@@ -622,10 +605,11 @@ bool CRenderTarget::need_to_render_sunshafts()
 	if (!ps_r_sun_shafts)
 		return false;
 
-    const CEnvDescriptor&	E = *g_pGamePersistent->Environment().CurrentEnv;
+    const CEnvDescriptor& E = *g_pGamePersistent->Environment().CurrentEnv;
     const Fcolor sun_color= ((light*)RImplementation.Lights.sun_adapted._get())->color;
     const float fValue = E.m_fSunShaftsIntensity * u_diffuse2s(sun_color.r,sun_color.g,sun_color.b);
-    if (fValue<EPS) return false;
+    if (fValue < EPS) 
+		return false;
 
     return true;
 }

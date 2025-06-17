@@ -13,14 +13,14 @@ extern float r_ssaLOD_B;
 extern float r_ssaGLOD_start, r_ssaGLOD_end;
 
 void render_main::init()
-{
-}
+{}
 
 void render_main::calculate_static()
 {
     static_calc_frame = Device.dwFrame;
 
-    static_waiter = TTAPI->submit([] {
+    static_waiter = TTAPI->submit([] 
+	{
         ZoneScoped;
 
         if (RImplementation.HOM.Allowed())
@@ -51,7 +51,8 @@ void render_main::ensure_calculate_static()
 
 void render_main::calculate_dynamic()
 {
-    dynamic_waiter = TTAPI->submit([] {
+    dynamic_waiter = TTAPI->submit([] 
+	{
         ZoneScoped;
 
         // ждем партиклы тут
@@ -82,20 +83,9 @@ void render_main::wait_dynamic() const
 
 void render_main::sync() const
 {
-    // just to be safe
-
     wait_static();
-
     wait_dynamic();
 }
-
-
-// IC bool pred_sp_sort(ISpatial* _1, ISpatial* _2)
-//{
-//     float d1 = _1->spatial.sphere.P.distance_to_sqr(Device.vCameraPosition);
-//     float d2 = _2->spatial.sphere.P.distance_to_sqr(Device.vCameraPosition);
-//     return d1 < d2;
-// }
 
 constexpr u32 batch_size = 5;
 
@@ -110,13 +100,11 @@ void CRender::calculate_particles_async()
 
         g_SpatialSpace->q_frustum(lstParticlesCalculation, 0, STYPE_RENDERABLE | STYPE_PARTICLE, v);
 
-        auto calculate_particles = [this] {
+        auto calculate_particles = [this] 
+		{
             CTimer t_total;
 
             t_total.Start();
-
-            // (almost) Exact sorting order (front-to-back)
-            // std::sort(lstParticlesCalculation.begin(), lstParticlesCalculation.end(), pred_sp_sort);
 
             xr_vector<CPS_Instance*> batch;
 
@@ -141,7 +129,8 @@ void CRender::calculate_particles_async()
 
                         batch.clear();
 
-                        particles_pool.submit_detach([](const xr_vector<CPS_Instance*>& l) {
+                        particles_pool.submit_detach([](const xr_vector<CPS_Instance*>& l) 
+						{
                             for (CPS_Instance* instance : l)
                             {
                                 instance->PerformFrame();   
@@ -158,7 +147,8 @@ void CRender::calculate_particles_async()
                 batch.clear();
 
                 particles_pool.submit_detach(
-                    [](const xr_vector<CPS_Instance*>& l) {
+                    [](const xr_vector<CPS_Instance*>& l) 
+					{
                         for (CPS_Instance* instance : l)
                         {
                             instance->PerformFrame();
@@ -207,10 +197,8 @@ void CRender::calculate_bones_async()
 
         g_SpatialSpace->q_frustum(lstBonesCalculation, 0, STYPE_RENDERABLE, v);
 
-        auto calculate_bones = [this] {
-            // (almost) Exact sorting order (front-to-back)
-            // std::sort(lstBonesCalculation.begin(), lstBonesCalculation.end(), pred_sp_sort);
-
+        auto calculate_bones = [this] 
+		{
             // Traverse frustums
             for (auto spatial : lstBonesCalculation)
             {
@@ -259,14 +247,6 @@ void CRender::Calculate()
         return;
 
     ZoneScopedN("r2_calculate");
-
-    //IMainMenu* pMainMenu = g_pGamePersistent ? g_pGamePersistent->m_pMainMenu : 0;
-    //bool bMenu = pMainMenu ? pMainMenu->CanSkipSceneRendering() : false;
-
-    //if (!(g_pGameLevel && g_hud) || bMenu)
-    //{
-    //    return;
-    //}
 
     // Transfer to global space to avoid deep pointer access
     IRender_Target* T = getTarget();

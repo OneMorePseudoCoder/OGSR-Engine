@@ -49,11 +49,6 @@ void CHW::Reset(HWND hwnd)
     _RELEASE(pBaseRT);
 
 #ifndef _EDITOR
-    //#ifndef DEDICATED_SERVER
-    //	BOOL	bWindowed		= !psDeviceFlags.is	(rsFullscreen);
-    //#else
-    //	BOOL	bWindowed		= TRUE;
-    //#endif
     BOOL bWindowed = TRUE;
     if (!g_dedicated_server)
         bWindowed = !psDeviceFlags.is(rsFullscreen);
@@ -92,19 +87,10 @@ void CHW::Reset(HWND hwnd)
 #endif
 }
 
-// xr_token*				vid_mode_token = NULL;
-// extern xr_token*		vid_mode_token;
 #include "../../Include/xrAPI/xrAPI.h"
-// xr_token*				vid_quality_token = NULL;
 
 void CHW::CreateD3D()
 {
-    //#ifndef DEDICATED_SERVER
-    //	LPCSTR		_name			= "d3d9.dll";
-    //#else
-    //	LPCSTR		_name			= "xrd3d9-null.dll";
-    //#endif
-
     LPCSTR _name = "xrd3d9-null.dll";
 
 #ifndef _EDITOR
@@ -179,6 +165,7 @@ void CHW::DestroyDevice()
     free_vid_mode_list();
 #endif
 }
+
 void CHW::selectResolution(u32& dwWidth, u32& dwHeight, BOOL bWindowed)
 {
     fill_vid_mode_list(this);
@@ -213,20 +200,12 @@ void CHW::selectResolution(u32& dwWidth, u32& dwHeight, BOOL bWindowed)
 #endif
         }
     }
-    //#endif
 }
 
 void CHW::CreateDevice(HWND m_hWnd, bool move_window)
 {
     m_move_window = move_window;
     CreateD3D();
-
-    // General - select adapter and device
-    //#ifdef DEDICATED_SERVER
-    //	BOOL  bWindowed			= TRUE;
-    //#else
-    //	BOOL  bWindowed			= !psDeviceFlags.is(rsFullscreen);
-    //#endif
 
     BOOL bWindowed = TRUE;
 
@@ -316,8 +295,7 @@ void CHW::CreateDevice(HWND m_hWnd, bool move_window)
         fDepth = selectDepthStencil(fTarget);
     }
 
-    CHECK_OR_EXIT(D3DFMT_UNKNOWN != fTarget && D3DFMT_UNKNOWN != fDepth,
-                  "Failed to initialize graphics hardware.\nPlease try to restart the game.\nCan not find matching format for back buffer.");
+    CHECK_OR_EXIT(D3DFMT_UNKNOWN != fTarget && D3DFMT_UNKNOWN != fDepth, "Failed to initialize graphics hardware.\nPlease try to restart the game.\nCan not find matching format for back buffer.");
 
     // Set up the presentation parameters
     D3DPRESENT_PARAMETERS& P = DevPP;
@@ -326,9 +304,8 @@ void CHW::CreateDevice(HWND m_hWnd, bool move_window)
 #ifndef _EDITOR
     selectResolution(P.BackBufferWidth, P.BackBufferHeight, bWindowed);
 #endif
+
     // Back buffer
-    //.	P.BackBufferWidth		= dwWidth;
-    //. P.BackBufferHeight		= dwHeight;
     P.BackBufferFormat = fTarget;
     P.BackBufferCount = 1;
 
@@ -344,7 +321,7 @@ void CHW::CreateDevice(HWND m_hWnd, bool move_window)
     // Depth/stencil
     P.EnableAutoDepthStencil = TRUE;
     P.AutoDepthStencilFormat = fDepth;
-    P.Flags = 0; //. D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL;
+    P.Flags = 0;
 
     // Refresh rate
     if (bWindowed)
@@ -359,15 +336,11 @@ void CHW::CreateDevice(HWND m_hWnd, bool move_window)
 
     // Create the device
     u32 GPU = selectGPU();
-    HRESULT R = HW.pD3D->CreateDevice(DevAdapter, DevT, m_hWnd,
-                                      GPU | D3DCREATE_MULTITHREADED, //. ? locks at present
-                                      &P, &pDevice);
+    HRESULT R = HW.pD3D->CreateDevice(DevAdapter, DevT, m_hWnd, GPU | D3DCREATE_MULTITHREADED, &P, &pDevice);
 
     if (FAILED(R))
     {
-        R = HW.pD3D->CreateDevice(DevAdapter, DevT, m_hWnd,
-                                  GPU | D3DCREATE_MULTITHREADED, //. ? locks at present
-                                  &P, &pDevice);
+        R = HW.pD3D->CreateDevice(DevAdapter, DevT, m_hWnd, GPU | D3DCREATE_MULTITHREADED, &P, &pDevice);
     }
 
     CHECK_OR_EXIT(D3DERR_DEVICELOST != R, "Failed to initialize graphics hardware.\nPlease try to restart the game.\nCreateDevice returned D3DERR_DEVICELOST");
@@ -437,6 +410,7 @@ u32 CHW::selectGPU()
     }
 
     if (isIntelGMA)
+	{
         switch (ps_r1_SoftwareSkinning)
         {
         case 0:
@@ -449,6 +423,7 @@ u32 CHW::selectGPU()
             Msg("*   setting 'r1_software_skinning' to '1' may improve performance");
             break;
         }
+	}
     else if (ps_r1_SoftwareSkinning == 1)
     {
         Msg("* WARNING: Using software skinning");
@@ -474,7 +449,6 @@ u32 CHW::selectGPU()
             else
                 return D3DCREATE_HARDWARE_VERTEXPROCESSING;
         }
-        // return D3DCREATE_MIXED_VERTEXPROCESSING;
     }
     else
         return D3DCREATE_SOFTWARE_VERTEXPROCESSING;
@@ -513,14 +487,8 @@ BOOL CHW::support(D3DFORMAT fmt, DWORD type, DWORD usage)
 
 void CHW::updateWindowProps(HWND m_hWnd)
 {
-    //	BOOL	bWindowed				= strstr(Core.Params,"-dedicated") ? TRUE : !psDeviceFlags.is	(rsFullscreen);
-    //#ifndef DEDICATED_SERVER
-    //	BOOL	bWindowed				= !psDeviceFlags.is	(rsFullscreen);
-    //#else
-    //	BOOL	bWindowed				= TRUE;
-    //#endif
-
     BOOL bWindowed = TRUE;
+
 #ifndef _EDITOR
     if (!g_dedicated_server)
         bWindowed = !psDeviceFlags.is(rsFullscreen);
@@ -557,8 +525,7 @@ void CHW::updateWindowProps(HWND m_hWnd)
 
                 GetClientRect(GetDesktopWindow(), &DesktopRect);
 
-                SetRect(&m_rcWindowBounds, (DesktopRect.right - DevPP.BackBufferWidth) / 2, (DesktopRect.bottom - DevPP.BackBufferHeight) / 2,
-                        (DesktopRect.right + DevPP.BackBufferWidth) / 2, (DesktopRect.bottom + DevPP.BackBufferHeight) / 2);
+                SetRect(&m_rcWindowBounds, (DesktopRect.right - DevPP.BackBufferWidth) / 2, (DesktopRect.bottom - DevPP.BackBufferHeight) / 2, (DesktopRect.right + DevPP.BackBufferWidth) / 2, (DesktopRect.bottom + DevPP.BackBufferHeight) / 2);
             }
             else
             {
@@ -569,14 +536,12 @@ void CHW::updateWindowProps(HWND m_hWnd)
 
             AdjustWindowRect(&m_rcWindowBounds, DWORD(dwWindowStyle), FALSE);
 
-            SetWindowPos(m_hWnd, HWND_NOTOPMOST, m_rcWindowBounds.left, m_rcWindowBounds.top + fYOffset, (m_rcWindowBounds.right - m_rcWindowBounds.left),
-                         (m_rcWindowBounds.bottom - m_rcWindowBounds.top), SWP_SHOWWINDOW | SWP_NOCOPYBITS | SWP_DRAWFRAME);
+            SetWindowPos(m_hWnd, HWND_NOTOPMOST, m_rcWindowBounds.left, m_rcWindowBounds.top + fYOffset, (m_rcWindowBounds.right - m_rcWindowBounds.left), (m_rcWindowBounds.bottom - m_rcWindowBounds.top), SWP_SHOWWINDOW | SWP_NOCOPYBITS | SWP_DRAWFRAME);
         }
     }
     else
     {
         SetWindowLongPtr(m_hWnd, GWL_STYLE, dwWindowStyle = (WS_POPUP | WS_VISIBLE));
-        // SetWindowLongPtr( m_hWnd, GWL_EXSTYLE, WS_EX_TOPMOST);
     }
 
     SetForegroundWindow(m_hWnd);
@@ -592,79 +557,6 @@ struct _uniq_mode
 
 #ifndef _EDITOR
 
-/*
-void free_render_mode_list()
-{
-    for( int i=0; vid_quality_token[i].name; i++ )
-    {
-        xr_free					(vid_quality_token[i].name);
-    }
-    xr_free						(vid_quality_token);
-    vid_quality_token			= NULL;
-}
-*/
-/*
-void	fill_render_mode_list()
-{
-    if(vid_quality_token != NULL)		return;
-
-    D3DCAPS9					caps;
-    CHW							_HW;
-    _HW.CreateD3D				();
-    _HW.pD3D->GetDeviceCaps		(D3DADAPTER_DEFAULT,D3DDEVTYPE_HAL,&caps);
-    _HW.DestroyD3D				();
-    u16		ps_ver_major		= u16 ( u32(u32(caps.PixelShaderVersion)&u32(0xf << 8ul))>>8 );
-
-    xr_vector<LPCSTR>			_tmp;
-    u32 i						= 0;
-    for(; i<5; ++i)
-    {
-        bool bBreakLoop = false;
-        switch (i)
-        {
-        case 3:		//"renderer_r2.5"
-            if (ps_ver_major < 3)
-                bBreakLoop = true;
-            break;
-        case 4:		//"renderer_r_dx10"
-            bBreakLoop = true;
-            break;
-        default:	;
-        }
-
-        if (bBreakLoop) break;
-
-        _tmp.push_back				(NULL);
-        LPCSTR val					= NULL;
-        switch (i)
-        {
-            case 0: val ="renderer_r1";			break;
-            case 1: val ="renderer_r2a";		break;
-            case 2: val ="renderer_r2";			break;
-            case 3: val ="renderer_r2.5";		break;
-            case 4: val ="renderer_r_dx10";		break; //  -)
-        }
-        _tmp.back()					= xr_strdup(val);
-    }
-    u32 _cnt								= _tmp.size()+1;
-    vid_quality_token						= xr_alloc<xr_token>(_cnt);
-
-    vid_quality_token[_cnt-1].id			= -1;
-    vid_quality_token[_cnt-1].name			= NULL;
-
-#ifdef DEBUG
-    Msg("Available render modes[%d]:",_tmp.size());
-#endif // DEBUG
-    for(u32 i=0; i<_tmp.size();++i)
-    {
-        vid_quality_token[i].id				= i;
-        vid_quality_token[i].name			= _tmp[i];
-#ifdef DEBUG
-        Msg							("[%s]",_tmp[i]);
-#endif // DEBUG
-    }
-}
-*/
 void free_vid_mode_list()
 {
     for (int i = 0; vid_mode_token[i].name; i++)

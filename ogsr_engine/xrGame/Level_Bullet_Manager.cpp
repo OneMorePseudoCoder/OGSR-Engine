@@ -24,8 +24,7 @@ SBullet::SBullet() : m_on_bullet_hit(false) {}
 
 SBullet::~SBullet() {}
 
-void SBullet::Init(const Fvector& position, const Fvector& direction, float starting_speed, float power, float impulse, u16 sender_id, u16 sendersweapon_id,
-                   ALife::EHitType e_hit_type, float maximum_distance, const CCartridge& cartridge, bool SendHit)
+void SBullet::Init(const Fvector& position, const Fvector& direction, float starting_speed, float power, float impulse, u16 sender_id, u16 sendersweapon_id, ALife::EHitType e_hit_type, float maximum_distance, const CCartridge& cartridge, bool SendHit)
 {
     flags._storage = 0;
     pos = position;
@@ -62,6 +61,7 @@ void SBullet::Init(const Fvector& position, const Fvector& direction, float star
 
     targetID = 0;
     m_ExplodeParticles = cartridge.m_ExplodeParticles;
+    m_dwTimeRemainder = 0;
 }
 
 //////////////////////////////////////////////////////////
@@ -70,7 +70,6 @@ void SBullet::Init(const Fvector& position, const Fvector& direction, float star
 CBulletManager::CBulletManager()
 {
     m_Bullets.reserve(1000);
-    m_dwTimeRemainder = 0;
 }
 
 CBulletManager::~CBulletManager()
@@ -98,6 +97,7 @@ void CBulletManager::Load()
 
     LPCSTR whine_sounds = pSettings->r_string(BULLET_MANAGER_SECTION, "whine_sounds");
     int cnt = _GetItemCount(whine_sounds);
+    m_WhineSounds.reserve(cnt);
     xr_string tmp;
     for (int k = 0; k < cnt; ++k)
     {
@@ -107,6 +107,7 @@ void CBulletManager::Load()
 
     LPCSTR explode_particles = pSettings->r_string(BULLET_MANAGER_SECTION, "explode_particles");
     cnt = _GetItemCount(explode_particles);
+    m_ExplodeParticles.reserve(cnt);
     for (int k = 0; k < cnt; ++k)
         m_ExplodeParticles.emplace_back(_GetItem(explode_particles, k, tmp));
 }
@@ -116,7 +117,6 @@ void CBulletManager::PlayExplodePS(const Fmatrix& xf, RStringVec& m_ExplodeParti
     if (!m_ExplodeParticles.empty())
     {
         const shared_str& ps_name = m_ExplodeParticles[Random.randI(0, m_ExplodeParticles.size())];
-
         CParticlesObject* ps = CParticlesObject::Create(*ps_name, TRUE);
         ps->UpdateParent(xf, {});
         GamePersistent().ps_needtoplay.push_back(ps);
@@ -127,13 +127,21 @@ void CBulletManager::PlayWhineSound(SBullet* bullet, CObject* object, const Fvec
 {
     if (m_WhineSounds.empty())
         return;
+
     if (bullet->m_whine_snd._feedback() != NULL)
         return;
+
     if (bullet->hit_type != ALife::eHitTypeFireWound)
         return;
 
-    bullet->m_whine_snd = m_WhineSounds[Random.randI(0, m_WhineSounds.size())];
-    bullet->m_whine_snd.play_at_pos(object, pos);
+	auto& snd = m_WhineSounds[Random.randI(0, m_WhineSounds.size())];
+	// мы не должны слышать звук собственной пули, пролетающий мимоMore actions
+	// кого-нибудь рядом с нами
+	if (!smart_cast<CActor*>(object) || ::Sound->listener_position().distance_to(pos) > snd._handle()->max_distance()) 
+	{
+		bullet->m_whine_snd = snd;
+		bullet->m_whine_snd.play_at_pos(object, pos);
+	}
 }
 
 void CBulletManager::Clear() //Вызывается при загрузке и дестрое уровня
@@ -142,12 +150,9 @@ void CBulletManager::Clear() //Вызывается при загрузке и �
     m_Events.clear();
 }
 
-SBullet& CBulletManager::AddBullet(const Fvector& position, const Fvector& direction, float starting_speed, float power, float impulse, u16 sender_id, u16 sendersweapon_id,
-                                   ALife::EHitType e_hit_type, float maximum_distance, const CCartridge& cartridge, bool SendHit, bool AimBullet)
+SBullet& CBulletManager::AddBullet(const Fvector& position, const Fvector& direction, float starting_speed, float power, float impulse, u16 sender_id, u16 sendersweapon_id, ALife::EHitType e_hit_type, float maximum_distance, const CCartridge& cartridge, bool SendHit, bool AimBullet)
 {
     VERIFY(u16(-1) != cartridge.bullet_material_idx);
-    //	u32 CurID = Level().CurrentControlEntity()->ID();
-    //	u32 OwnerID = sender_id;
     m_Bullets.emplace_back();
     SBullet& bullet = m_Bullets.back();
     bullet.Init(position, direction, starting_speed, power, impulse, sender_id, sendersweapon_id, e_hit_type, maximum_distance, cartridge, SendHit);
@@ -156,44 +161,38 @@ SBullet& CBulletManager::AddBullet(const Fvector& position, const Fvector& direc
     return bullet;
 }
 
-void CBulletManager::UpdateWorkload()
+void CBulletManager::UpdateWorkload() 
 {
-    u32 delta_time = Device.dwTimeDelta + m_dwTimeRemainder;
-    u32 step_num = delta_time / m_dwStepTime;
-    m_dwTimeRemainder = delta_time % m_dwStepTime;
+	if (m_Bullets.size() == 0)
+		return;
 
-    rq_storage.r_clear();
-    rq_spatial.clear();
+	rq_storage.r_clear();
+	rq_spatial.clear();
 
-    int k = m_Bullets.size() - 1;
-
-    for (; k >= 0; k--)
-    {
-        SBullet& bullet = m_Bullets[k];
-        //для пули пущенной на этом же кадре считаем только 1 шаг
-        //(хотя по теории вообще ничего считать на надо)
-        //который пропустим на следующем кадре,
-        //это делается для того чтоб при скачках FPS не промазать
-        //с 2х метров
-        u32 cur_step_num = step_num;
-
-        u32 frames_pass = Device.dwFrame - bullet.frame_num;
-        if (frames_pass == 0)
-            cur_step_num = 1;
-        else if (frames_pass == 1 && step_num > 0)
-            cur_step_num -= 1;
-
-        // calculate bullet
-        for (u32 i = 0; i < cur_step_num; i++)
-        {
-            if (!CalcBullet(rq_storage, rq_spatial, &bullet, m_dwStepTime))
-            {
-                collide::rq_result res;
-                RegisterEvent(EVENT_REMOVE, FALSE, &bullet, Fvector().set(0, 0, 0), res, (u16)k);
-                break;
-            }
-        }
-    }
+	int k = m_Bullets.size() - 1;
+	for (; k >= 0; k--) 
+	{
+		SBullet& bullet = m_Bullets[k];
+		if (bullet.frame_num == Device.dwFrame)
+			continue;
+		u32 delta_time = Device.dwTimeDelta + bullet.m_dwTimeRemainder;
+		u32 step_num   = delta_time / m_dwStepTime;
+		u32 step_time  = m_dwStepTime;
+		if (step_num == 0 && Device.dwFrame - bullet.frame_num == 1) 
+		{
+			step_num  = 1;
+			step_time = Device.dwTimeDelta;
+			bullet.m_dwTimeRemainder = 0;
+		}
+		else
+			bullet.m_dwTimeRemainder = delta_time % m_dwStepTime;
+		// calculate bullet
+		if (step_num > 0 && !CalcBullet(rq_storage, rq_spatial, &bullet, step_time * step_num)) 
+		{
+			collide::rq_result res;
+			RegisterEvent(EVENT_REMOVE, FALSE, &bullet, Fvector().set(0, 0, 0), res, (u16)k);
+		}
+	}
 }
 
 bool CBulletManager::CalcBullet(collide::rq_results& rq_storage, xr_vector<ISpatial*>& rq_spatial, SBullet* bullet, u32 delta_time)
@@ -217,7 +216,7 @@ bool CBulletManager::CalcBullet(collide::rq_results& rq_storage, xr_vector<ISpat
 
     bullet->flags.ricochet_was = 0;
 
-    collide::ray_defs RD(bullet->pos, bullet->dir, range, CDB::OPT_CULL, collide::rqtBoth);
+    collide::ray_defs RD(bullet->pos, bullet->dir, range, CDB::OPT_FULL_TEST, collide::rqtBoth);
     BOOL result = FALSE;
     VERIFY(!fis_zero(RD.dir.square_magnitude()));
     result = Level().ObjectSpace.RayQuery(rq_storage, RD, firetrace_callback, &bullet_data, test_callback, NULL);
@@ -226,6 +225,7 @@ bool CBulletManager::CalcBullet(collide::rq_results& rq_storage, xr_vector<ISpat
     {
         range = (rq_storage.r_begin() + rq_storage.r_count() - 1)->range;
     }
+
     range = std::max(EPS_L, range);
 
     bullet->flags.skipped_frame = (Device.dwFrame >= bullet->frame_num);
@@ -241,12 +241,7 @@ bool CBulletManager::CalcBullet(collide::rq_results& rq_storage, xr_vector<ISpat
 
         Fbox level_box = Level().ObjectSpace.GetBoundingVolume();
 
-        /*		if(!level_box.contains(bullet->pos))
-                    return false;
-        */
-        if (!((bullet->pos.x >= level_box.x1) && (bullet->pos.x <= level_box.x2) && (bullet->pos.y >= level_box.y1) &&
-              //			 (bullet->pos.y<=level_box.y2) &&
-              (bullet->pos.z >= level_box.z1) && (bullet->pos.z <= level_box.z2)))
+        if (!((bullet->pos.x >= level_box.x1) && (bullet->pos.x <= level_box.x2) && (bullet->pos.y >= level_box.y1) && (bullet->pos.z >= level_box.z1) && (bullet->pos.z <= level_box.z2)))
             return false;
 
         //изменить скорость и направление ее полета
@@ -255,7 +250,6 @@ bool CBulletManager::CalcBullet(collide::rq_results& rq_storage, xr_vector<ISpat
 
         Fvector air_resistance = bullet->dir;
         air_resistance.mul(-bullet->air_resistance * delta_time_sec);
-        ///		Msg("Speed - %f; ar - %f, %f", bullet->dir.magnitude(), air_resistance.magnitude(), air_resistance.magnitude()/bullet->dir.magnitude()*100);
 
         bullet->dir.add(air_resistance);
         bullet->dir.y -= m_fGravityConst * delta_time_sec;
@@ -263,8 +257,6 @@ bool CBulletManager::CalcBullet(collide::rq_results& rq_storage, xr_vector<ISpat
         bullet->speed = bullet->dir.magnitude();
         VERIFY(_valid(bullet->speed));
         VERIFY(!fis_zero(bullet->speed));
-        //вместо normalize(),	 чтоб не считать 2 раза magnitude()
-#pragma todo("а как насчет bullet->speed==0")
         bullet->dir.x /= bullet->speed;
         bullet->dir.y /= bullet->speed;
         bullet->dir.z /= bullet->speed;
@@ -360,27 +352,13 @@ void CBulletManager::Render()
             if (dist2segSqr < MinDistSqr)
                 dist2segSqr = MinDistSqr;
 
-            width *= _sqrt(dist2segSqr / MaxDistSqr); //*MaxDistWidth/0.08f;
+            width *= _sqrt(dist2segSqr / MaxDistSqr);
         }
+
         if (Device.vCameraPosition.distance_to_sqr(bullet.pos) < (length * length))
         {
             length = Device.vCameraPosition.distance_to(bullet.pos) - 0.3f;
         }
-        /*
-        //---------------------------------------------
-        Fvector vT, v0, v1;
-        vT.mad(Device.vCameraPosition, Device.vCameraDirection, _sqrt(dist2segSqr));
-        v0.mad(vT, Device.vCameraTop, width*.5f);
-        v1.mad(vT, Device.vCameraTop, -width*.5f);
-        Fvector v0r, v1r;
-        Device.mFullTransform.transform(v0r, v0);
-        Device.mFullTransform.transform(v1r, v1);
-        float ViewWidth = v1r.distance_to(v0r);
-*/
-        //		float dist = _sqrt(dist2segSqr);
-        //		Msg("dist - [%f]; ViewWidth - %f, [%f]", dist, ViewWidth, ViewWidth*float(Device.dwHeight));
-        //		Msg("dist - [%f]", dist);
-        //---------------------------------------------
 
         Fvector center;
         center.mad(bullet.pos, bullet.dir, -length * .5f);
@@ -397,19 +375,21 @@ void CBulletManager::Render()
 void CBulletManager::CommitRenderSet() // @ the end of frame
 {
     m_BulletsRendered = m_Bullets;
-    // Msg("!![%s] size of m_BulletsRendered: [%u], m_Bullets: [%u], m_events: [%u]", __FUNCTION__, m_BulletsRendered.size(), m_Bullets.size(), m_Events.size());
+
     if (g_mt_config.test(mtBullets))
         Device.add_to_seq_parallel(fastdelegate::MakeDelegate(this, &CBulletManager::UpdateWorkload));
     else
         CBulletManager::UpdateWorkload();
 }
+
 void CBulletManager::CommitEvents() // @ the start of frame
 {
     for (auto& E : m_Events)
     {
         switch (E.Type)
         {
-        case EVENT_HIT: {
+        case EVENT_HIT: 
+		{
             if (E.dynamic)
                 DynamicObjectHit(E);
             else
@@ -426,17 +406,16 @@ void CBulletManager::CommitEvents() // @ the start of frame
             }
         }
         break;
-        case EVENT_REMOVE: {
+        case EVENT_REMOVE: 
+		{
             m_Bullets[E.tgt_material] = m_Bullets.back();
             m_Bullets.pop_back();
         }
         break;
         }
     }
-    m_Events.clear();
 
-    if (m_Bullets.empty())
-        m_dwTimeRemainder = 0;
+    m_Events.clear();
 }
 
 void CBulletManager::RegisterEvent(EventType Type, BOOL _dynamic, SBullet* bullet, const Fvector& end_point, collide::rq_result& R, u16 tgt_material)
@@ -448,7 +427,8 @@ void CBulletManager::RegisterEvent(EventType Type, BOOL _dynamic, SBullet* bulle
 
     switch (Type)
     {
-    case EVENT_HIT: {
+    case EVENT_HIT: 
+	{
         E.dynamic = _dynamic;
         E.result = ObjectHit(bullet, end_point, R, tgt_material, E.normal);
         E.point = end_point;
@@ -456,15 +436,13 @@ void CBulletManager::RegisterEvent(EventType Type, BOOL _dynamic, SBullet* bulle
         E.tgt_material = tgt_material;
         if (_dynamic)
         {
-            //	E.Repeated = (R.O->ID() == E.bullet.targetID);
-            //	bullet->targetID = R.O->ID();
-
             E.Repeated = (R.O->ID() == E.bullet.targetID);
             bullet->targetID = R.O->ID();
         }
     }
     break;
-    case EVENT_REMOVE: {
+    case EVENT_REMOVE: 
+	{
         E.tgt_material = tgt_material;
     }
     break;

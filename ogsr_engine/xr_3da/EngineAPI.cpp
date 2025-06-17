@@ -21,21 +21,13 @@ CEngineAPI::CEngineAPI()
 }
 
 CEngineAPI::~CEngineAPI()
-{
-}
+{}
 
 ENGINE_API int g_current_renderer = 0;
 
-//ENGINE_API bool is_enough_address_space_available()
-//{
-//    SYSTEM_INFO system_info;
-//    GetSystemInfo(&system_info);
-//
-//    return (*(size_t*)&system_info.lpMaximumApplicationAddress) > 0x90000000ull;
-//}
-
 #ifdef XRGAME_STATIC
-extern "C" {
+extern "C" 
+{
 DLL_Pure* xrFactory_Create(CLASS_ID clsid);
 void xrFactory_Destroy(DLL_Pure* O);
 }

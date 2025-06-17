@@ -18,6 +18,8 @@
 #include "monster_community.h"
 #include "ai_space.h"
 #include "memory_space.h"
+#include "alife_simulator.h"
+#include "alife_object_registry.h"
 
 #define BODY_REMOVE_TIME 600000
 #define FORGET_KILLER_TIME 180
@@ -46,7 +48,8 @@ void CEntity::OnEvent(NET_Packet& P, u16 type)
 
     switch (type)
     {
-    case GE_DIE: {
+    case GE_DIE: 
+	{
         u16 id;
         u32 cl;
         P.r_u16(id);
@@ -72,6 +75,7 @@ void CEntity::Die(CObject* who)
 {
     if (!AlreadyDie())
         set_death_time();
+
     SetfHealth(-1.f);
 
     VERIFY(m_registered_member);
@@ -95,7 +99,6 @@ float CEntity::CalcCondition(float hit)
     return hit;
 }
 
-// void CEntity::Hit			(float perc, Fvector &dir, CObject* who, s16 element,Fvector position_in_object_space, float impulse, ALife::EHitType hit_type)
 void CEntity::Hit(SHit* pHDS)
 {
     if (bDebug)
@@ -125,12 +128,18 @@ void CEntity::Hit(SHit* pHDS)
         HitSignal(lost_health, vLocalDir, pHDS->who, pHDS->boneID);
 
     // If Local() - perform some logic
+	bool die_now = false;
     if (Local() && !g_Alive() && !AlreadyDie() && (m_killer_id == ALife::_OBJECT_ID(-1)))
     {
-        KillEntity(pHDS->whoID);
+		KillEntity_begin(pHDS->whoID);
+		die_now = true;
     }
+
     // must be last!!! @slipch
     inherited::Hit(pHDS);
+	
+	if (die_now)
+		KillEntity_end();
 }
 
 void CEntity::Load(LPCSTR section)
@@ -205,8 +214,7 @@ BOOL CEntity::net_Spawn(CSE_Abstract* DC)
         auto& squad = Level().seniority_holder().team(g_Team()).squad(g_Squad());
         while (squad.group(g_Group()).members().size() == sizeof(squad_mask_type) * 8)
         {
-            Msg("* [%s]: [%s]: group [team:%u][squad:%u][group:%u] is full (%u), try next group %u", __FUNCTION__,
-                (E && E->name_replace()[0]) ? E->name_replace() : cName().c_str(), g_Team(), g_Squad(), g_Group(), squad.group(g_Group()).members().size(), g_Group() + 1);
+            Msg("* [%s]: [%s]: group [team:%u][squad:%u][group:%u] is full (%u), try next group %u", __FUNCTION__, (E && E->name_replace()[0]) ? E->name_replace() : cName().c_str(), g_Team(), g_Squad(), g_Group(), squad.group(g_Group()).members().size(), g_Group() + 1);
             ++id_Group;
         }
         squad.group(g_Group()).register_member(this);
@@ -217,18 +225,17 @@ BOOL CEntity::net_Spawn(CSE_Abstract* DC)
     {
         m_level_death_time = Device.dwTimeGlobal;
         m_game_death_time = E->m_game_death_time;
-        ;
     }
 
     if (!inherited::net_Spawn(DC))
         return (FALSE);
 
-    //	SetfHealth			(E->fHealth);
     IKinematics* pKinematics = smart_cast<IKinematics*>(Visual());
     CInifile* ini = NULL;
 
     if (pKinematics)
         ini = pKinematics->LL_UserData();
+
     if (ini)
     {
         if (ini->section_exist("damage_section") && !use_simplified_visual())
@@ -275,34 +282,40 @@ void CEntity::KillEntity(u16 whoID)
             return;
     }
 
-    m_killer_id = whoID;
-
-    set_death_time();
-
-    if (!getDestroy())
-    {
-        NET_Packet P;
-        u_EventGen(P, GE_DIE, ID());
-        P.w_u16(u16(whoID));
-        P.w_u32(0);
-
-        u_EventSend(P, net_flags(TRUE, TRUE, FALSE, TRUE));
-    }
+	KillEntity_begin(whoID);
+	KillEntity_end();
 };
 
-// void CEntity::KillEntity(CObject* who)
-//{
-//	VERIFY			(who);
-//	if (who) KillEntity(who->ID());
-// }
+void CEntity::KillEntity_begin(u16 whoID) 
+{
+	m_killer_id = whoID;
+	set_death_time();
+}
+
+void CEntity::KillEntity_end() 
+{
+	if (ai().get_alife()) 
+	{
+		auto sobj1 = smart_cast<CSE_Abstract*>(alife_object());
+		auto sobj2 = smart_cast<CSE_Abstract*>(ai().get_alife()->objects().object(m_killer_id, true));
+		auto creature = smart_cast<CSE_ALifeCreatureAbstract*>(sobj1);
+		if (creature)
+			creature->m_killer_id = m_killer_id;
+		auto alife = const_cast<CALifeSimulator*>(ai().get_alife());
+		alife->on_death(sobj1, sobj2);
+	}
+
+	if (!getDestroy())
+		Die(Level().Objects.net_Find(m_killer_id));
+}
 
 void CEntity::reinit() { inherited::reinit(); }
 
 void CEntity::reload(LPCSTR section)
 {
-	inherited::reload			(section);
-	if ( Ready() && !use_simplified_visual() )
-		CDamageManager::reload	(section,"damage",pSettings);
+	inherited::reload(section);
+	if (Ready() && !use_simplified_visual())
+		CDamageManager::reload(section, "damage", pSettings);
 }
 
 void CEntity::set_death_time()
@@ -312,6 +325,7 @@ void CEntity::set_death_time()
 }
 
 bool CEntity::IsFocused() const { return (smart_cast<const CEntity*>(g_pGameLevel->CurrentEntity()) == this); }
+
 bool CEntity::IsMyCamera() const { return (smart_cast<const CEntity*>(g_pGameLevel->CurrentViewEntity()) == this); }
 
 DLL_Pure* CEntity::_construct()

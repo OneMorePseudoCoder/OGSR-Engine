@@ -198,19 +198,17 @@ BOOL CTheoraStream::Decode(u32 tm_play)
                     //. hack preroll
                     if (d_frame < k_frame)
                     {
-                        //.						dbg_log				((stderr,"%04d: preroll\n",d_frame));
                         VERIFY((0 != d_frame % key_rate) || (0 == d_frame % key_rate) && theora_packet_iskeyframe(&o_packet));
                         continue;
                     }
                     VERIFY((d_frame != k_frame) || ((d_frame == k_frame) && theora_packet_iskeyframe(&o_packet)));
                     // real decode
-//.					dbg_log					((stderr,"%04d: decode\n",d_frame));
 #ifdef DEBUG
                     int res =
 #endif
                         theora_decode_packetin(&t_state, &o_packet);
                     VERIFY(res != OC_BADPACKET);
-                    //.					dbg_log					((stderr,"%04d: granule frame\n",theora_granule_frame(&t_state,t_state.granulepos)));
+
                     if (d_frame >= t_frame)
                         result = TRUE;
                 }
@@ -233,7 +231,6 @@ BOOL CTheoraStream::Decode(u32 tm_play)
         VERIFY(TRUE == result);
         VERIFY(d_frame == t_frame);
         theora_decode_YUVout(&t_state, &t_yuv_buffer);
-        //.		dbg_log								((stderr,"%04d: yuv out\n",d_frame));
         return TRUE;
     }
     return FALSE;

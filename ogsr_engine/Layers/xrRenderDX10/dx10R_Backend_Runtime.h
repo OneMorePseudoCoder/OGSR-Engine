@@ -55,8 +55,6 @@ IC void CBackend::set_ZB(ID3DDepthStencilView* ZB)
         PGO(Msg("PGO:setZB"));
         stat.target_zb++;
         pZB = ZB;
-        // HW.pDevice->OMSetRenderTargets(0, 0, pZB);
-        // HW.pDevice->OMSetRenderTargets(sizeof(pRT)/sizeof(pRT[0]), pRT, pZB);
         //	Reset all RT's here to allow RT to be bounded as input
         if (!m_bChangedRTorZB)
             HW.get_context(context_id)->OMSetRenderTargets(0, nullptr, nullptr);
@@ -99,7 +97,6 @@ ICF void CBackend::set_PS(ID3DPixelShader* _ps, LPCSTR _n)
         ps = _ps;
         HW.get_context(context_id)->PSSetShader(ps, nullptr, 0);
 
-
 #ifdef DEBUG
         ps_name = _n;
 #endif
@@ -114,7 +111,6 @@ ICF void CBackend::set_GS(ID3DGeometryShader* _gs, LPCSTR _n)
         stat.gs++;
         gs = _gs;
         HW.get_context(context_id)->GSSetShader(gs, nullptr, 0);
-
 
 #ifdef DEBUG
         gs_name = _n;
@@ -199,17 +195,7 @@ ICF void CBackend::set_Vertices(ID3DVertexBuffer* _vb, u32 _vb_stride)
         stat.vb++;
         vb = _vb;
         vb_stride = _vb_stride;
-        // CHK_DX			(HW.pDevice->SetStreamSource(0,vb,0,vb_stride));
-        // UINT StreamNumber,
-        // IDirect3DVertexBuffer9 * pStreamData,
-        // UINT OffsetInBytes,
-        // UINT Stride
 
-        // UINT StartSlot,
-        // UINT NumBuffers,
-        // ID3DxxBuffer *const *ppVertexBuffers,
-        // const UINT *pStrides,
-        // const UINT *pOffsets
         const u32 iOffset = 0;
         HW.get_context(context_id)->IASetVertexBuffers(0, 1, &vb, &_vb_stride, &iOffset);
         need_reset_vertbuf = false;
@@ -237,7 +223,8 @@ ICF void CBackend::set_Indices(ID3DIndexBuffer* _ib)
 
 IC D3D_PRIMITIVE_TOPOLOGY TranslateTopology(D3DPRIMITIVETYPE T)
 {
-    constexpr D3D_PRIMITIVE_TOPOLOGY translateTable[]{
+    constexpr D3D_PRIMITIVE_TOPOLOGY translateTable[]
+	{
         D3D_PRIMITIVE_TOPOLOGY_UNDEFINED, //	None
         D3D_PRIMITIVE_TOPOLOGY_POINTLIST, //	D3DPT_POINTLIST = 1,
         D3D_PRIMITIVE_TOPOLOGY_LINELIST, //	D3DPT_LINELIST = 2,
@@ -281,17 +268,6 @@ IC void CBackend::ApplyPrimitieTopology(D3D_PRIMITIVE_TOPOLOGY Topology)
         HW.get_context(context_id)->IASetPrimitiveTopology(m_PrimitiveTopology);
     }
 }
-
-//IC void CBackend::Compute(UINT ThreadGroupCountX, UINT ThreadGroupCountY, UINT ThreadGroupCountZ)
-//{
-//    stat.calls++;
-//
-//    SRVSManager.Apply(context_id);
-//    StateManager.Apply();
-//    //	State manager may alter constants
-//    constants.flush();
-//    HW.get_context(context_id)->Dispatch(ThreadGroupCountX, ThreadGroupCountY, ThreadGroupCountZ);
-//}
 
 IC void CBackend::Render(D3DPRIMITIVETYPE T, u32 baseV, u32 startV, u32 countV, u32 startI, u32 PC, u32 inst_cnt)
 {
@@ -384,14 +360,12 @@ IC void CBackend::set_Scissor(Irect* R)
 {
     if (R)
     {
-        // CHK_DX		(HW.pDevice->SetRenderState(D3DRS_SCISSORTESTENABLE,TRUE));
         StateManager.EnableScissoring();
         const RECT* clip = (RECT*)R;
         HW.get_context(context_id)->RSSetScissorRects(1, clip);
     }
     else
     {
-        // CHK_DX		(HW.pDevice->SetRenderState(D3DRS_SCISSORTESTENABLE,FALSE));
         StateManager.EnableScissoring(FALSE);
         HW.get_context(context_id)->RSSetScissorRects(0, nullptr);
     }
@@ -405,59 +379,27 @@ IC void CBackend::SetViewport(const D3D_VIEWPORT& viewport) const
 IC void CBackend::set_Stencil(u32 _enable, u32 _func, u32 _ref, u32 _mask, u32 _writemask, u32 _fail, u32 _pass, u32 _zfail)
 {
     StateManager.SetStencil(_enable, _func, _ref, _mask, _writemask, _fail, _pass, _zfail);
-    // Simple filter
-    // if (stencil_enable		!= _enable)		{ stencil_enable=_enable;		CHK_DX(HW.pDevice->SetRenderState	( D3DRS_STENCILENABLE,		_enable				)); }
-    // if (!stencil_enable)					return;
-    // if (stencil_func		!= _func)		{ stencil_func=_func;			CHK_DX(HW.pDevice->SetRenderState	( D3DRS_STENCILFUNC,		_func				)); }
-    // if (stencil_ref			!= _ref)		{ stencil_ref=_ref;				CHK_DX(HW.pDevice->SetRenderState	( D3DRS_STENCILREF,			_ref				)); }
-    // if (stencil_mask		!= _mask)		{ stencil_mask=_mask;			CHK_DX(HW.pDevice->SetRenderState	( D3DRS_STENCILMASK,		_mask				)); }
-    // if (stencil_writemask	!= _writemask)	{ stencil_writemask=_writemask;	CHK_DX(HW.pDevice->SetRenderState	( D3DRS_STENCILWRITEMASK,	_writemask			)); }
-    // if (stencil_fail		!= _fail)		{ stencil_fail=_fail;			CHK_DX(HW.pDevice->SetRenderState	( D3DRS_STENCILFAIL,		_fail				)); }
-    // if (stencil_pass		!= _pass)		{ stencil_pass=_pass;			CHK_DX(HW.pDevice->SetRenderState	( D3DRS_STENCILPASS,		_pass				)); }
-    // if (stencil_zfail		!= _zfail)		{ stencil_zfail=_zfail;			CHK_DX(HW.pDevice->SetRenderState	( D3DRS_STENCILZFAIL,		_zfail				)); }
 }
 
 IC void CBackend::set_Z(u32 _enable)
 {
     StateManager.SetDepthEnable(_enable);
-    // if (z_enable != _enable)
-    //{
-    //	z_enable=_enable;
-    //	CHK_DX(HW.pDevice->SetRenderState	( D3DRS_ZENABLE, _enable ));
-    // }
 }
 
 IC void CBackend::set_ZFunc(u32 _func)
 {
     StateManager.SetDepthFunc(_func);
-    // if (z_func!=_func)
-    //{
-    //	z_func = _func;
-    //	CHK_DX(HW.pDevice->SetRenderState( D3DRS_ZFUNC, _func));
-    // }
 }
 
 IC void CBackend::set_AlphaRef(u32 _value)
 {
     //	TODO: DX10: Implement rasterizer state update to support alpha ref
     VERIFY(!"Not implemented.");
-    // if (alpha_ref != _value)
-    //{
-    //	alpha_ref = _value;
-    //	CHK_DX(HW.pDevice->SetRenderState(D3DRS_ALPHAREF,_value));
-    // }
 }
 
 IC void CBackend::set_ColorWriteEnable(u32 _mask)
 {
     StateManager.SetColorWriteEnable(_mask);
-    // if (colorwrite_mask		!= _mask)		{
-    //	colorwrite_mask=_mask;
-    //	CHK_DX(HW.pDevice->SetRenderState	( D3DRS_COLORWRITEENABLE,	_mask	));
-    //	CHK_DX(HW.pDevice->SetRenderState	( D3DRS_COLORWRITEENABLE1,	_mask	));
-    //	CHK_DX(HW.pDevice->SetRenderState	( D3DRS_COLORWRITEENABLE2,	_mask	));
-    //	CHK_DX(HW.pDevice->SetRenderState	( D3DRS_COLORWRITEENABLE3,	_mask	));
-    // }
 }
 
 ICF void CBackend::set_CullMode(u32 _mode) { StateManager.SetCullMode(_mode); }
@@ -475,11 +417,7 @@ IC void CBackend::ApplyVertexLayout()
     {
         ID3DInputLayout* pLayout;
 
-        CHK_DX(HW.pDevice->CreateInputLayout(&decl->dx10_dcl_code[0], 
-            decl->dx10_dcl_code.size() - 1, 
-            m_pInputSignature->GetBufferPointer(), 
-            m_pInputSignature->GetBufferSize(),
-            &pLayout));
+        CHK_DX(HW.pDevice->CreateInputLayout(&decl->dx10_dcl_code[0], decl->dx10_dcl_code.size() - 1, m_pInputSignature->GetBufferPointer(), m_pInputSignature->GetBufferSize(), &pLayout));
 
         it = decl->vs_to_layout.emplace(m_pInputSignature, pLayout).first;
     }
@@ -517,6 +455,7 @@ IC void CBackend::set_Constants(R_constant_table* C)
     // caching
     if (ctable == C)
         return;
+
     ctable = C;
 
     xforms.unmap();
@@ -565,7 +504,6 @@ IC void CBackend::set_Constants(R_constant_table* C)
 
         for (; it != end; ++it)
         {
-            // ID3DxxBuffer*	pBuffer = (it->second)->GetBuffer();
             const u32 uiBufferIndex = it->first;
 
             if ((uiBufferIndex & CB_BufferTypeMask) == CB_BufferPixelShader)
@@ -696,11 +634,6 @@ IC void CBackend::set_Constants(R_constant_table* C)
             HW.get_context(context_id)->CSSetConstantBuffers(uiMin, uiMax - uiMin, &tempBuffer[uiMin]);
             was_updated = true;
         }
-    }
-
-    if (!was_updated)
-    {
-        //Msg("can skip const set !!");
     }
 
     //if (was_updated)

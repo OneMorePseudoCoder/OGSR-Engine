@@ -52,13 +52,15 @@ void xrServer::Process_event(NET_Packet& P, ClientID sender)
     case GEG_PLAYER_ITEM2SLOT:
     case GEG_PLAYER_ITEM2BELT:
     case GEG_PLAYER_ITEM2RUCK:
-    case GE_GRENADE_EXPLODE: {
+    case GE_GRENADE_EXPLODE: 
+	{
         SendBroadcast(BroadcastCID, P, MODE);
     }
     break;
     case GE_TRADE_BUY:
     case GE_OWNERSHIP_TAKE:
-    case GE_TRANSFER_TAKE: {
+    case GE_TRANSFER_TAKE: 
+	{
         Process_event_ownership(P, sender, timestamp, destination);
         VERIFY(verify_entities());
     }
@@ -66,17 +68,20 @@ void xrServer::Process_event(NET_Packet& P, ClientID sender)
     case GE_TRADE_SELL:
     case GE_OWNERSHIP_REJECT:
     case GE_TRANSFER_REJECT:
-    case GE_LAUNCH_ROCKET: {
+    case GE_LAUNCH_ROCKET: 
+	{
         Process_event_reject(P, sender, timestamp, destination, P.r_u16());
         VERIFY(verify_entities());
     }
     break;
-    case GE_DESTROY: {
+    case GE_DESTROY: 
+	{
         Process_event_destroy(P, sender, timestamp, destination, NULL);
         VERIFY(verify_entities());
     }
     break;
-    case GE_TRANSFER_AMMO: {
+    case GE_TRANSFER_AMMO: 
+	{
         u16 id_entity;
         P.r_u16(id_entity);
         CSE_Abstract* e_parent = receiver; // кто забирает (для своих нужд)
@@ -97,12 +102,14 @@ void xrServer::Process_event(NET_Packet& P, ClientID sender)
         VERIFY(verify_entities());
     }
     break;
-    case GE_HIT:{
+    case GE_HIT:
+	{
         P.r_pos -= 2;
         game->AddDelayedEvent(P, GAME_EVENT_ON_HIT, 0, ClientID());
     }
     break;
-    case GE_ASSIGN_KILLER: {
+    case GE_ASSIGN_KILLER: 
+	{
         u16 id_src;
         P.r_u16(id_src);
 
@@ -115,12 +122,10 @@ void xrServer::Process_event(NET_Packet& P, ClientID sender)
         if (creature)
             creature->m_killer_id = id_src;
 
-        //		Msg							("[%d][%s] killed [%d][%s]",id_src,id_src==u16(-1) ? "UNKNOWN" :
-        //game->get_entity_from_eid(id_src)->name_replace(),id_dest,e_dest->name_replace());
-
         break;
     }
-    case GE_CHANGE_VISUAL: {
+    case GE_CHANGE_VISUAL: 
+	{
         CSE_Visual* visual = smart_cast<CSE_Visual*>(receiver);
         VERIFY(visual);
         string256 tmp;
@@ -128,7 +133,8 @@ void xrServer::Process_event(NET_Packet& P, ClientID sender)
         visual->set_visual(tmp);
     }
     break;
-    case GE_DIE: {
+    case GE_DIE: 
+	{
         // Parse message
         u16 id_src;
         P.r_u16(id_src);
@@ -147,10 +153,11 @@ void xrServer::Process_event(NET_Packet& P, ClientID sender)
             if (C)
                 e_src = C->owner;
         };
+
         if (!e_src)
             e_src = e_dest;
+
         VERIFY(e_src);
-        //			R_ASSERT2			(e_dest && e_src, "Killer or/and being killed are offline or not exist at all :(");
 
         game->on_death(e_dest, e_src);
 
@@ -181,43 +188,40 @@ void xrServer::Process_event(NET_Packet& P, ClientID sender)
         VERIFY(verify_entities());
     }
     break;
-    case GE_CHANGE_POS: {
+    case GE_CHANGE_POS: 
+	{
         SendTo(SV_Client->ID, P, net_flags(TRUE, TRUE));
     }
     break;
     case GEG_PLAYER_ACTIVATE_SLOT:
-    case GEG_PLAYER_ITEM_EAT: {
+    case GEG_PLAYER_ITEM_EAT: 
+	{
         SendTo(SV_Client->ID, P, net_flags(TRUE, TRUE));
 #ifdef SLOW_VERIFY_ENTITIES
         VERIFY(verify_entities());
 #endif
     }
     break;
-    /*case GEG_PLAYER_ITEM_SELL: {
-    }
-    break;*/
-    case GE_TELEPORT_OBJECT: {
+    case GE_TELEPORT_OBJECT: 
+	{
         game->teleport_object(P, destination);
     }
     break;
-    case GE_ADD_RESTRICTION: {
+    case GE_ADD_RESTRICTION: 
+	{
         game->add_restriction(P, destination);
     }
     break;
-    case GE_REMOVE_RESTRICTION: {
+    case GE_REMOVE_RESTRICTION: 
+	{
         game->remove_restriction(P, destination);
     }
     break;
-    case GE_REMOVE_ALL_RESTRICTIONS: {
+    case GE_REMOVE_ALL_RESTRICTIONS: 
+	{
         game->remove_all_restrictions(P, destination);
     }
     break;
-    //case GE_MONEY: {
-    //    CSE_Abstract* e_dest = receiver;
-    //    CSE_ALifeTraderAbstract* pTa = smart_cast<CSE_ALifeTraderAbstract*>(e_dest);
-    //    pTa->m_dwMoney = P.r_u32();
-    //}
-    //break;
     case GE_FREEZE_OBJECT: break;
     default: R_ASSERT2(0, "Game Event not implemented!!!"); break;
     }

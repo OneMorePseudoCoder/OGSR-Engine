@@ -18,7 +18,7 @@ CSE_ALifeItemWeapon* CSE_ALifeAnomalousZone::tpfGetBestWeapon(ALife::EHitType& t
 {
     m_tpCurrentBestWeapon = 0;
     m_tTimeID = ai().alife().time_manager().game_time();
-    fHitPower = 1.0f; // m_maxPower;
+    fHitPower = 1.0f;
     tHitType = m_tHitType;
     return (m_tpCurrentBestWeapon);
 }
@@ -47,9 +47,6 @@ void CSE_ALifeAnomalousZone::spawn_artefacts()
 
     VERIFY2(!m_bOnline, "Cannot spawn artefacts in online!");
 
-    //float m_min_start_power = pSettings->r_float(name(), "min_start_power");
-    //float m_max_start_power = pSettings->r_float(name(), "max_start_power");
-
     u32 m_min_artefact_count = pSettings->r_u32(name(), "min_artefact_count");
     u32 m_max_artefact_count = pSettings->r_u32(name(), "max_artefact_count");
     
@@ -63,19 +60,12 @@ void CSE_ALifeAnomalousZone::spawn_artefacts()
     if (m_artefact_count == 0)
         return;
 
-    //if (m_min_start_power == m_max_start_power)
-    //    m_maxPower = m_min_start_power;
-    //else
-    //    m_maxPower = randF(m_min_start_power, m_max_start_power);
-
     LPCSTR artefacts = pSettings->r_string(name(), "artefacts");
     if (artefacts == nullptr)
         return;
 
-
     if (::Random.randF(0.f, 1.f) > READ_IF_EXISTS(pSettings, r_float, name(), "artefact_offline_spawn_probability", 0.5f))
         return;
-
 
     u16 itemCount = (u16)_GetItemCount(artefacts);
     VERIFY2(!(n % 2), "Invalid parameters count in line artefacts for anomalous zone");
@@ -139,18 +129,6 @@ void CSE_ALifeAnomalousZone::spawn_artefacts()
 
             i->m_tSpawnID = m_tSpawnID;
             i->m_bALifeControl = true;
-
-            //ai().alife().spawns().assign_artefact_position(this, i);
-
-            //Fvector t = i->o_Position;
-            //u32 p = i->m_tNodeID;
-            //float q = i->m_fDistance;
-
-            //alife().graph().change(i, m_tGraphID, i->m_tGraphID);
-
-            //i->o_Position = t;
-            //i->m_tNodeID = p;
-            //i->m_fDistance = q;
 
             CSE_ALifeItemArtefact* l_tpALifeItemArtefact = smart_cast<CSE_ALifeItemArtefact*>(i);
             R_ASSERT2(l_tpALifeItemArtefact, "Anomalous zone can't generate non-artefact objects since they don't have an 'anomaly property'!");

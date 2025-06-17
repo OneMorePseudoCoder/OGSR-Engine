@@ -1,6 +1,5 @@
 #include "stdafx.h"
 
-
 #include "Environment.h"
 #include "render.h"
 #include "xr_efflensflare.h"
@@ -11,7 +10,7 @@
 //-----------------------------------------------------------------------------
 // Environment render
 //-----------------------------------------------------------------------------
-// BOOL bNeed_re_create_env = FALSE;
+
 void CEnvironment::RenderSky(CBackend& cmd_list)
 {
     if (nullptr == g_pGameLevel)

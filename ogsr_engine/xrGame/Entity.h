@@ -74,14 +74,13 @@ public:
     bool IsFocused() const;
     bool IsMyCamera() const;
 
-    //	virtual float			g_Health			()const	{ return GetfHealth();}
-    /*	virtual*/ IC float GetMaxHealth() const { return m_entity_condition->max_health(); }
-    /*	virtual*/ IC void SetMaxHealth(float v) { m_entity_condition->max_health() = v; }
+    IC float GetMaxHealth() const { return m_entity_condition->max_health(); }
+    IC void SetMaxHealth(float v) { m_entity_condition->max_health() = v; }
 
     virtual float GetHotness() override;
     virtual void OnChangeVisual() override;
 
-    /*virtual*/ IC BOOL g_Alive() const { return GetfHealth() > 0; }
+    IC BOOL g_Alive() const { return GetfHealth() > 0; }
     virtual BOOL g_State(SEntityState&) const { return FALSE; }
 
     bool AlreadyDie() { return 0 != GetLevelDeathTime() ? true : false; }
@@ -100,8 +99,10 @@ public:
     virtual void HitImpulse(float P, Fvector& vWorldDir, Fvector& vLocalDir) = 0;
 
     virtual void Die(CObject* who);
-    //			void			KillEntity			(CObject* who);
-    void KillEntity(u16 whoID);
+
+	void KillEntity(u16 whoID);
+	void KillEntity_begin(u16 whoID);
+	void KillEntity_end();
 
     // Events
     virtual void OnEvent(NET_Packet& P, u16 type);

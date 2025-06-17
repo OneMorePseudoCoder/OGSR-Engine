@@ -97,6 +97,7 @@ void InitSettings()
         }
     }
 }
+
 void InitConsole()
 {
     Console = xr_new<CConsole>();
@@ -167,11 +168,12 @@ void destroySettings()
     xr_delete(pSettings);
     xr_delete(pGameIni);
 }
+
 void destroyConsole()
 {
-    //Console->Destroy();
     xr_delete(Console);
 }
+
 void destroyEngine()
 {
     Device.Destroy();
@@ -392,10 +394,7 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lp
 
     Debug._initialize();
 
-    // SetThreadAffinityMask		(GetCurrentThread(),1);
-
     // Title window
-
     DisableProcessWindowsGhosting();
 
     ShowSplash(hInstance);
@@ -427,7 +426,6 @@ int APIENTRY WinMain_impl(HINSTANCE hInstance, HINSTANCE hPrevInstance, char* lp
         if (!strstr(lpCmdLine, "-multi_instances")) // Delete application presence mutex
             CloseHandle(hCheckPresenceMutex);
     }
-    // here damn_keys_filter class instanse will be destroyed
 
     return 0;
 }
@@ -580,6 +578,7 @@ void CApplication::LoadDraw() const
 {
     if (g_appLoaded)
         return;
+
     Device.dwFrame += 1;
 
     if (!Device.Begin())
@@ -608,7 +607,6 @@ void CApplication::LoadStage()
     LoadDraw();
 
     ++load_stage;
-    // Msg("--LoadStage is [%d]", load_stage);
 }
 
 // Sequential
@@ -761,10 +759,11 @@ void CApplication::load_draw_internal() const
 
 #pragma todo("Simp: нужно ли это? сомневаюсь.")
 // Always request high performance GPU
-extern "C" {
-// https://docs.nvidia.com/gameworks/content/technologies/desktop/optimus.htm
-_declspec(dllexport) u32 NvOptimusEnablement = 0x00000001; // NVIDIA Optimus
+extern "C" 
+{
+	// https://docs.nvidia.com/gameworks/content/technologies/desktop/optimus.htm
+	_declspec(dllexport) u32 NvOptimusEnablement = 0x00000001; // NVIDIA Optimus
 
-// https://gpuopen.com/amdpowerxpressrequesthighperformance/
-_declspec(dllexport) u32 AmdPowerXpressRequestHighPerformance = 0x00000001; // PowerXpress or Hybrid Graphics
+	// https://gpuopen.com/amdpowerxpressrequesthighperformance/
+	_declspec(dllexport) u32 AmdPowerXpressRequestHighPerformance = 0x00000001; // PowerXpress or Hybrid Graphics
 }

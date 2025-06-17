@@ -13,6 +13,7 @@ static void generate_orthonormal_basis(const Fvector& dir, Fmatrix& result)
     result.k.normalize(dir);
     Fvector::generate_orthonormal_basis(result.k, result.j, result.i);
 }
+
 CParticlesPlayer::SParticlesInfo* CParticlesPlayer::SBoneInfo::FindParticles(const shared_str& ps_name)
 {
     for (ParticlesInfoListIt it = particles.begin(); it != particles.end(); it++)
@@ -20,6 +21,7 @@ CParticlesPlayer::SParticlesInfo* CParticlesPlayer::SBoneInfo::FindParticles(con
             return &(*it);
     return 0;
 }
+
 CParticlesPlayer::SParticlesInfo* CParticlesPlayer::SBoneInfo::AppendParticles(CObject* object, const shared_str& ps_name)
 {
     SParticlesInfo* pi = FindParticles(ps_name);
@@ -29,6 +31,7 @@ CParticlesPlayer::SParticlesInfo* CParticlesPlayer::SBoneInfo::AppendParticles(C
     pi->ps = CParticlesObject::Create(*ps_name, FALSE);
     return pi;
 }
+
 void CParticlesPlayer::SBoneInfo::StopParticles(const shared_str& ps_name, bool bDestroy)
 {
     SParticlesInfo* pi = FindParticles(ps_name);
@@ -84,8 +87,7 @@ void CParticlesPlayer::LoadParticles(IKinematics* K)
         for (const auto& [key, value] : data.Data)
         {
             u16 index = K->LL_BoneID(key.c_str());
-            ASSERT_FMT(index != BI_NONE, "Particles bone [%s] not found in model [%s], section: [%s]", key.c_str(), m_self_object->cNameVisual().c_str(),
-                       m_self_object->cNameSect().c_str());
+            ASSERT_FMT(index != BI_NONE, "Particles bone [%s] not found in model [%s], section: [%s]", key.c_str(), m_self_object->cNameVisual().c_str(), m_self_object->cNameSect().c_str());
             Fvector offs;
             sscanf(value.c_str(), "%f,%f,%f", &offs.x, &offs.y, &offs.z);
             m_Bones.emplace_back(index, offs);
@@ -98,6 +100,7 @@ void CParticlesPlayer::LoadParticles(IKinematics* K)
         m_Bones.emplace_back(K->LL_GetBoneRoot(), Fvector().set(0, 0, 0));
     }
 }
+
 //уничтожение партиклов на net_Destroy
 void CParticlesPlayer::net_DestroyParticles()
 {
@@ -122,6 +125,7 @@ void CParticlesPlayer::StartParticles(const shared_str& particles_name, u16 bone
     generate_orthonormal_basis(dir, xform);
     StartParticles(particles_name, bone_num, xform, sender_id, life_time, auto_stop);
 }
+
 void CParticlesPlayer::StartParticles(const shared_str& particles_name, u16 bone_num, const Fmatrix& xform, u16 sender_id, int life_time, bool auto_stop)
 {
     VERIFY(fis_zero(xform.c.magnitude()));
@@ -240,6 +244,7 @@ void CParticlesPlayer::UpdateParticles()
 {
     if (!m_bActiveBones)
         return;
+
     m_bActiveBones = false;
 
     CObject* object = m_self_object;

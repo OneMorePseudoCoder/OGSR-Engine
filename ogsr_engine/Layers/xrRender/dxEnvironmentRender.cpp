@@ -10,7 +10,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 // half box def
-constexpr Fvector3 hbox_verts[24] = {
+constexpr Fvector3 hbox_verts[24] = 
+{
     {-1.f, -1.f, -1.f} ,  {-1.f, -1.01f, -1.f}, // down
     {1.f, -1.f, -1.f},    {1.f, -1.01f, -1.f}, // down
     {-1.f, -1.f, 1.f},    {-1.f, -1.01f, 1.f}, // down
@@ -24,8 +25,8 @@ constexpr Fvector3 hbox_verts[24] = {
     {1.f, -0.01f, 1.f},  {1.f, -1.f, 1.f}, // half
     {-1.f, -0.01f, 1.f}, {-1.f, -1.f, 1.f} // half
 };
-constexpr u16 hbox_faces[20 * 3] = {0, 2,  3, 3, 1, 0, 4, 5, 7,  7,  6,  4, 0,  1,  9, 9, 8, 0,  8, 9, 5, 5, 4,  8, 1,  3, 10, 10, 9, 1,
-                                 9, 10, 7, 7, 5, 9, 3, 2, 11, 11, 10, 3, 10, 11, 6, 6, 7, 10, 2, 0, 8, 8, 11, 2, 11, 8, 4,  4,  6, 11};
+
+constexpr u16 hbox_faces[20 * 3] = {0, 2,  3, 3, 1, 0, 4, 5, 7,  7,  6,  4, 0,  1,  9, 9, 8, 0,  8, 9, 5, 5, 4,  8, 1,  3, 10, 10, 9, 1, 9, 10, 7, 7, 5, 9, 3, 2, 11, 11, 10, 3, 10, 11, 6, 6, 7, 10, 2, 0, 8, 8, 11, 2, 11, 8, 4,  4,  6, 11};
 
 #pragma pack(push, 1)
 struct v_skybox
@@ -42,6 +43,7 @@ struct v_skybox
         uv[1] = _tc;
     }
 };
+
 const u32 v_skybox_fvf = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX2 | D3DFVF_TEXCOORDSIZE3(0) | D3DFVF_TEXCOORDSIZE3(1);
 struct v_clouds
 {
@@ -55,6 +57,7 @@ struct v_clouds
         intensity = _i;
     }
 };
+
 const u32 v_clouds_fvf = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_SPECULAR;
 #pragma pack(pop)
 
@@ -194,8 +197,7 @@ void dxEnvironmentRender::RenderSky(CBackend& cmd_list, CEnvironment& env)
     mSky.translate_over(Device.vCameraPosition);
 
     u32 i_offset, v_offset;
-    const u32 C = color_rgba(iFloor(env.CurrentEnv->sky_color.x * 255.f), iFloor(env.CurrentEnv->sky_color.y * 255.f), 
-                             iFloor(env.CurrentEnv->sky_color.z * 255.f), iFloor(env.CurrentEnv->weight * 255.f));
+    const u32 C = color_rgba(iFloor(env.CurrentEnv->sky_color.x * 255.f), iFloor(env.CurrentEnv->sky_color.y * 255.f), iFloor(env.CurrentEnv->sky_color.z * 255.f), iFloor(env.CurrentEnv->weight * 255.f));
 
     // Fill index buffer
     u16* pib = RImplementation.Index.Lock(20 * 3, i_offset);
@@ -227,7 +229,6 @@ void dxEnvironmentRender::RenderClouds(CBackend& cmd_list, CEnvironment& env)
 {
     RImplementation.rmFar(cmd_list);
 
-    
     dxEnvDescriptorMixerRender& mixRen = *(dxEnvDescriptorMixerRender*)&*env.CurrentEnv->m_pDescriptorMixer;
 
     Fmatrix mCloud;
@@ -257,6 +258,7 @@ void dxEnvironmentRender::RenderClouds(CBackend& cmd_list, CEnvironment& env)
     v_clouds* pv = (v_clouds*)RImplementation.Vertex.Lock(env.CloudsVerts.size(), clouds_geom.stride(), v_offset);
     for (FvectorIt it = env.CloudsVerts.begin(); it != env.CloudsVerts.end(); ++it, pv++)
         pv->set(*it, C0, C1);
+
     RImplementation.Vertex.Unlock(env.CloudsVerts.size(), clouds_geom.stride());
 
     // Render

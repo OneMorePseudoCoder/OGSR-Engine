@@ -133,7 +133,7 @@ public:
     //CMainWeaponPreference* m_pfMainWeaponPreference;
     CItemValue* m_pfItemValue;
     //CWeaponAmmoCount* m_pfWeaponAmmoCount;
-    //CDetectorType* m_pfDetectorType;
+    CDetectorType* m_pfDetectorType;
 
     //CPersonalHealthFunction* m_pfPersonalHealth;
     //CPersonalMoraleFunction* m_pfPersonalMorale;

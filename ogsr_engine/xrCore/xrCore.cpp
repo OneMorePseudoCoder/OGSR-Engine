@@ -16,8 +16,7 @@ XRCORE_API bool gModulesLoaded = false;
 
 static u32 init_counter = 0;
 
-void xrCore::_initialize(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs,
-                         LPCSTR fs_fname)
+void xrCore::_initialize(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs, LPCSTR fs_fname)
 {
     strcpy_s(ApplicationName, _ApplicationName);
     if (0 == init_counter)
@@ -102,11 +101,10 @@ void xrCore::_initialize(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs,
 
         FS._initialize(flags, 0, fs_fname);
 
-        Msg("[OGSR Engine (%s)] build date: [" __DATE__ " " __TIME__ "]",
-            GetBuildConfiguration());
-        if (strlen(APPVEYOR_BUILD_VERSION))
-            Log("[AppVeyor] build version: [" APPVEYOR_BUILD_VERSION
-                "], repo: [" APPVEYOR_REPO_NAME "]");
+        Msg("[OGSR Engine (%s)] build date: [" __DATE__ " " __TIME__ "]", GetBuildConfiguration());
+  
+		if (strlen(APPVEYOR_BUILD_VERSION))
+            Log("[AppVeyor] build version: [" APPVEYOR_BUILD_VERSION "], repo: [" APPVEYOR_REPO_NAME "]");
 
 #pragma message("[" _CRT_STRINGIZE_(_MSC_FULL_VER) "]: [" _CRT_STRINGIZE(_MSC_FULL_VER) "], [" _CRT_STRINGIZE_(_MSVC_LANG) "]: [" _CRT_STRINGIZE(_MSVC_LANG) "]")
         Log("[" _CRT_STRINGIZE_(_MSC_FULL_VER) "]: [" _CRT_STRINGIZE(_MSC_FULL_VER) "], [" _CRT_STRINGIZE_(_MSVC_LANG) "]: [" _CRT_STRINGIZE(_MSVC_LANG) "]");
@@ -128,8 +126,7 @@ void xrCore::_initialize(LPCSTR _ApplicationName, LogCallback cb, BOOL init_fs,
     const char* szSearchFor = "-max-threads";
     char* pszTemp = strstr(Params, szSearchFor);
     u32 dwOverride = 0;
-    if (pszTemp && sscanf_s(pszTemp + strlen(szSearchFor), "%u", &dwOverride) &&
-        dwOverride >= 1)
+    if (pszTemp && sscanf_s(pszTemp + strlen(szSearchFor), "%u", &dwOverride) && dwOverride >= 1)
     {
         th_count = dwOverride;
     }
@@ -174,17 +171,9 @@ const char* xrCore::GetEngineVersion()
 constexpr const char* xrCore::GetBuildConfiguration()
 {
 #ifdef _DEBUG
-#ifdef _M_X64
     return "x64_Dbg";
 #else
-    return "x86_Dbg";
-#endif
-#else
-#ifdef _M_X64
     return "x64";
-#else
-    return "x86";
-#endif
 #endif
 }
 

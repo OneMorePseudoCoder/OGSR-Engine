@@ -86,7 +86,6 @@ void CEffect_Rain::Born(Item& dest, float radius, float speed)
     // Set speed
     dest.fSpeed = ::Random.randF(drop_speed_min, drop_speed_max) * speed * clampr(Wind_Velocity * 1.5f, 0.5f, 1.0f);
     // Born
-
     float height = max_distance;
     const BOOL b_hit = RayPick(dest.P, dest.D, height, collide::rqtBoth);
     RenewItem(dest, height, b_hit);

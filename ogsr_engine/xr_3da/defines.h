@@ -49,6 +49,5 @@ enum
     rsOcclusionDraw = 1ul << 20ul,
 };
 
-//. ENGINE_API extern	u32			psCurrentMode		;
 ENGINE_API extern u32 psCurrentVidMode[];
 ENGINE_API extern Flags32 psDeviceFlags;
