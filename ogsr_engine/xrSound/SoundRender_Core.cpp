@@ -208,9 +208,12 @@ void CSoundRender_Core::set_handler(sound_event* E) { Handler = E; }
 
 void CSoundRender_Core::set_geometry_occ(CDB::MODEL* M) { geom_MODEL = M; }
 
+void CSoundRender_Core::reset_geometry_som() { xr_delete(geom_SOM); }
+	
 void CSoundRender_Core::set_geometry_som(IReader* I)
 {
-    xr_delete(geom_SOM);
+    reset_geometry_som();
+
     if (0 == I)
         return;
 
@@ -250,13 +253,17 @@ void CSoundRender_Core::set_geometry_som(IReader* I)
     geom->close();
 }
 
+void CSoundRender_Core::reset_geometry_env() { xr_delete(geom_ENV); }
+
 void CSoundRender_Core::set_geometry_env(IReader* I)
 {
-    xr_delete(geom_ENV);
+    reset_geometry_env();	
+
     s_environment_ids.clear();
 
     if (0 == I)
         return;
+
     if (0 == s_environment)
         return;
 
