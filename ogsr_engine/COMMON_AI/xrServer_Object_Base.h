@@ -48,7 +48,8 @@ virtual void save(NET_Packet& tNetPacket);
 add_to_type_list(CPureServerObject)
 #define script_type_list save_type_list(CPureServerObject)
 
-    SERVER_ENTITY_DECLARE_BEGIN3(CSE_Abstract, ISE_Abstract, CPureServerObject, CScriptValueContainer) public : enum ESpawnFlags {
+    SERVER_ENTITY_DECLARE_BEGIN3(CSE_Abstract, ISE_Abstract, CPureServerObject, CScriptValueContainer) public : enum ESpawnFlags 
+    {
         flSpawnEnabled = u32(1 << 0),
         flSpawnOnSurgeOnly = u32(1 << 1),
         flSpawnSingleItemOnly = u32(1 << 2),
@@ -125,7 +126,7 @@ virtual ISE_Shape* __stdcall shape();
 virtual CSE_Motion* __stdcall motion();
 virtual bool __stdcall validate();
 virtual void __stdcall on_render(CDUInterface* du, ISE_AbstractLEOwner* owner, bool bSelected, const Fmatrix& parent, int priority, bool strictB2F) {}
-//
+virtual void set_additional_info(void* info) {};
 
 IC const Fvector& Position() const { return o_Position; };
 // we need this to prevent virtual inheritance :-(

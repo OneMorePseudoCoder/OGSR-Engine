@@ -35,8 +35,6 @@ public:
     //	Device state
     virtual DeviceState GetDeviceState();
 
-    void OnAssetsChanged() override;
-
     IResourceManager* GetResourceManager() const override;
 
 public:

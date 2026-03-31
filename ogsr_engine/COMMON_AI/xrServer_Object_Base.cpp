@@ -15,10 +15,15 @@
 
 #include "object_factory.h"
 
+#ifdef XRGAME_EXPORTS
+#include "ai_space.h"
+#include "alife_simulator.h"
+#endif // #ifdef XRGAME_EXPORTS
+
 LPCSTR script_section = "script";
 LPCSTR current_version = "current_server_entity_version";
 
-/*IC*/ u16 script_server_object_version()
+u16 script_server_object_version()
 {
     static bool initialized = false;
     static u16 script_version = 0;
@@ -51,6 +56,7 @@ CSE_Abstract::CSE_Abstract(LPCSTR caSection)
     m_editor_flags.zero();
     RespawnTime = 0;
     net_Ready = FALSE;
+    net_Processed = FALSE;
     ID = 0xffff;
     ID_Parent = 0xffff;
     ID_Phantom = 0xffff;
@@ -59,7 +65,7 @@ CSE_Abstract::CSE_Abstract(LPCSTR caSection)
     s_RP = 0xFE; // Use supplied coords
     s_flags.assign(0);
     s_name = caSection;
-    s_name_replace = 0; // xr_strdup("");
+    s_name_replace = 0;
     o_Angle.set(0.f, 0.f, 0.f);
     o_Position.set(0.f, 0.f, 0.f);
     m_bALifeControl = false;
@@ -67,38 +73,48 @@ CSE_Abstract::CSE_Abstract(LPCSTR caSection)
     m_script_version = 0;
     m_tClassID = TEXT2CLSID(pSettings->r_string(caSection, "class"));
 
-    //	m_spawn_probability			= 1.f;
     m_spawn_flags.zero();
     m_spawn_flags.set(flSpawnEnabled, TRUE);
     m_spawn_flags.set(flSpawnOnSurgeOnly, TRUE);
     m_spawn_flags.set(flSpawnSingleItemOnly, TRUE);
     m_spawn_flags.set(flSpawnIfDestroyedOnly, TRUE);
     m_spawn_flags.set(flSpawnInfiniteCount, TRUE);
-    //	m_max_spawn_count			= 1;
-    //	m_spawn_control				= "";
-    //	m_spawn_count				= 0;
-    //	m_last_spawn_time			= 0;
-    //	m_next_spawn_time			= 0;
-    //	m_min_spawn_interval		= 0;
-    //	m_max_spawn_interval		= 0;
+
     m_ini_file = 0;
 
     if (pSettings->line_exist(caSection, "custom_data"))
     {
-        string_path file_name;
-        FS.update_path(file_name, "$game_config$", pSettings->r_string(caSection, "custom_data"));
-        if (!FS.exist(file_name))
+        pcstr const raw_file_name = pSettings->r_string(caSection, "custom_data");
+        IReader const* config = 0;
+#ifdef XRGAME_EXPORTS
+        if (ai().get_alife())
+            config = ai().alife().get_config(raw_file_name);
+        else
+#endif // #ifdef XRGAME_EXPORTS
         {
-            Msg("! cannot open config file %s", file_name);
+            string_path file_name;
+            FS.update_path(file_name, "$game_config$", raw_file_name);
+            if (FS.exist(file_name))
+                config = FS.r_open(file_name);
+        }
+        if (config)
+        {
+            int size = config->length() * sizeof(char);
+            LPSTR temp = (LPSTR)_alloca(size + 1);
+            CopyMemory(temp, config->pointer(), size);
+            temp[size] = 0;
+            m_ini_string = temp;
+
+#ifdef XRGAME_EXPORTS
+            if (NULL == ai().get_alife())
+#endif // #ifdef XRGAME_EXPORTS
+            {
+                IReader* _r = (IReader*)config;
+                FS.r_close(_r);
+            }
         }
         else
-        {
-            IReader* reader = FS.r_open(file_name);
-            reader->skip_bom(file_name);
-            const xr_string temp{reinterpret_cast<const char*>(reader->pointer()), static_cast<size_t>(reader->elapsed())};
-            m_ini_string = temp.c_str();
-            FS.r_close(reader);
-        }
+            Msg("ERROR! cannot open config file %s", raw_file_name);
     }
 
     m_script_clsid = object_factory().script_clsid(m_tClassID);
@@ -154,19 +170,12 @@ void CSE_Abstract::Spawn_Write(NET_Packet& tNetPacket, BOOL bLocal)
     // client object custom data serialization SAVE
     u16 client_data_size = (u16)client_data.size(); //не может быть больше 256 байт
     tNetPacket.w_u16(client_data_size);
-    //	Msg							("SERVER:saving:save:%d bytes:%d:%s",client_data_size,ID,s_name_replace ? s_name_replace : "");
     if (client_data_size > 0)
     {
         tNetPacket.w(&*client_data.begin(), client_data_size);
     }
 
     tNetPacket.w(&m_tSpawnID, sizeof(m_tSpawnID));
-    //	tNetPacket.w_float			(m_spawn_probability);
-    //	tNetPacket.w_u32			(m_spawn_flags.get());
-    //	tNetPacket.w_stringZ		(m_spawn_control);
-    //	tNetPacket.w_u32			(m_max_spawn_count);
-    //	tNetPacket.w_u64			(m_min_spawn_interval);
-    //	tNetPacket.w_u64			(m_max_spawn_interval);
 
     // write specific data
     u32 position = tNetPacket.w_tell();
@@ -206,7 +215,6 @@ BOOL CSE_Abstract::Spawn_Read(NET_Packet& tNetPacket)
     m_script_version = tNetPacket.r_u16();
 
     // read specific data
-
     // client object custom data serialization LOAD
     {
         client_data.clear();
@@ -222,7 +230,7 @@ BOOL CSE_Abstract::Spawn_Read(NET_Packet& tNetPacket)
     tNetPacket.r(&m_tSpawnID, sizeof(m_tSpawnID));
 
     u16 size;
-    tNetPacket.r_u16(size); // size
+    tNetPacket.r_u16(size);
     R_ASSERT((size > sizeof(size)), "cannot read object, which is not successfully saved :(", name_replace());
     STATE_Read(tNetPacket, size);
 
@@ -235,9 +243,6 @@ void CSE_Abstract::load(NET_Packet& tNetPacket)
     u16 client_data_size = (m_wVersion > 93) ? tNetPacket.r_u16() : tNetPacket.r_u8();
     if (client_data_size > 0)
     {
-#ifdef DEBUG
-//		Msg						("SERVER:loading:load:%d bytes:%d:%s",client_data_size,ID,s_name_replace ? s_name_replace : "");
-#endif // DEBUG
         client_data.resize(client_data_size);
         tNetPacket.r(&*client_data.begin(), client_data_size);
     }
@@ -267,30 +272,6 @@ Fvector& CSE_Abstract::angle() { return (o_Angle); }
 
 Flags16& CSE_Abstract::flags() { return (s_flags); }
 
-xr_token game_types[] = {{"any game", GAME_ANY},
-                         {"single", GAME_SINGLE},
-                         //{ "deathmatch",		GAME_DEATHMATCH },
-                         //	{ "CTF",			GAME_CTF		},
-                         //	{ "assault",		GAME_ASSAULT	},
-                         //{ "counterstrike",	GAME_CS			},
-                         //{ "teamdeathmatch",	GAME_TEAMDEATHMATCH },
-                         //{ "artefacthunt",	GAME_ARTEFACTHUNT },
-                         {0, 0}};
+xr_token game_types[] = { {"any game", GAME_ANY}, {"single", GAME_SINGLE}, {0, 0} };
 
 bool CSE_Abstract::validate() { return (true); }
-
-/**
-void CSE_Abstract::save_update				(NET_Packet &tNetPacket)
-{
-    tNetPacket.w				(&m_spawn_count,sizeof(m_spawn_count));
-    tNetPacket.w				(&m_last_spawn_time,sizeof(m_last_spawn_time));
-    tNetPacket.w				(&m_next_spawn_time,sizeof(m_next_spawn_time));
-}
-
-void CSE_Abstract::load_update				(NET_Packet &tNetPacket)
-{
-    tNetPacket.r				(&m_spawn_count,sizeof(m_spawn_count));
-    tNetPacket.r				(&m_last_spawn_time,sizeof(m_last_spawn_time));
-    tNetPacket.r				(&m_next_spawn_time,sizeof(m_next_spawn_time));
-}
-/**/

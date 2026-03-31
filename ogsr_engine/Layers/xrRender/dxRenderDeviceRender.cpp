@@ -178,10 +178,4 @@ dxRenderDeviceRender::DeviceState dxRenderDeviceRender::GetDeviceState()
     return dsOK;
 }
 
-void dxRenderDeviceRender::OnAssetsChanged()
-{
-    Resources->m_textures_description.UnLoad();
-    Resources->m_textures_description.Load();
-}
-
 IResourceManager* dxRenderDeviceRender::GetResourceManager() const { return Resources; }

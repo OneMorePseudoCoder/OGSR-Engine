@@ -351,7 +351,7 @@ void light::optimize_smap_size()
     const float factor2 = powf(sizefactor, 1.f / 4.f); // this shouldn't make much difference
     const float factor3 = powf(widefactor, 1.f / 2.f); // make it linear ???
 
-    const float factor = ps_r2_ls_squality * factor0 * factor1 * factor3 * factor4;
+    const float factor = ps_r2_ls_squality * factor0 * factor1 * factor2 * factor3;
 
     // final size calc
     const u32 max_size = RImplementation.o.lights_smapsize <= static_cast<u32>(ps_ssfx_shadows.y) ? RImplementation.o.lights_smapsize : static_cast<u32>(ps_ssfx_shadows.y);

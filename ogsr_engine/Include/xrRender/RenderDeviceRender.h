@@ -36,6 +36,5 @@ public:
     //	Device state
     virtual DeviceState GetDeviceState() = 0;
 
-    virtual void OnAssetsChanged() = 0;
     virtual IResourceManager* GetResourceManager() const = 0;
 };

@@ -106,10 +106,9 @@ public:
     virtual void OnGameStart();
     virtual void OnGameEnd();
 
-    virtual void UpdateGameType(){};
+    virtual void UpdateGameType() {};
 
-    virtual void OnSectorChanged(IRender_Sector::sector_id_t sector){};
-    virtual void OnAssetsChanged();
+    virtual void OnSectorChanged(IRender_Sector::sector_id_t sector) {};
 
     virtual void RegisterModel(IRenderVisual* V) = 0;
     virtual float MtlTransparent(u32 mtl_idx) = 0;

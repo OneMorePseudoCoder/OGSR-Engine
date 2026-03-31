@@ -393,32 +393,27 @@ void IGame_Persistent::GrassBendersUpdateAnimations()
                 else
                 {
                     grass_shader_data.dir[idx].w += Device.fTimeDelta * grass_shader_data.speed[idx] * diff;
-
                     if (grass_shader_data.dir[idx].w >= grass_shader_data.str_target[idx])
                         grass_shader_data.str_target[idx] = 0;
                 }
-
                 // Remove Bender
                 if (grass_shader_data.dir[idx].w < 0.0f)
                     GrassBendersReset(idx);
 
                 break;
             }
-
-            case BENDER_ANIM_WAVY: {
+            case BENDER_ANIM_WAVY: 
+			{
                 // Anim Speed
                 grass_shader_data.time[idx] += Device.fTimeDelta * 1.5f * grass_shader_data.speed[idx];
-
                 // Curve
                 float curve = sin(grass_shader_data.time[idx]);
-
                 // Intensity using curve
                 grass_shader_data.dir[idx].w = curve * cos(curve * 1.4f) * 1.8f * grass_shader_data.str_target[idx];
-
                 break;
             }
-
-            case BENDER_ANIM_SUCK: {
+            case BENDER_ANIM_SUCK: 
+			{
                 // Anim Speed
                 grass_shader_data.time[idx] += Device.fTimeDelta * grass_shader_data.speed[idx];
 
@@ -427,11 +422,10 @@ void IGame_Persistent::GrassBendersUpdateAnimations()
 
                 // Intensity using Perlin
                 grass_shader_data.dir[idx].w = curve * grass_shader_data.str_target[idx];
-
                 break;
             }
-
-            case BENDER_ANIM_BLOW: {
+            case BENDER_ANIM_BLOW: 
+			{
                 // Anim Speed
                 grass_shader_data.time[idx] += Device.fTimeDelta * 1.2f * grass_shader_data.speed[idx];
 
@@ -440,11 +434,10 @@ void IGame_Persistent::GrassBendersUpdateAnimations()
 
                 // Intensity using Perlin
                 grass_shader_data.dir[idx].w = curve * grass_shader_data.str_target[idx];
-
                 break;
             }
-
-            case BENDER_ANIM_PULSE: {
+            case BENDER_ANIM_PULSE: 
+			{
                 // Anim Speed
                 grass_shader_data.time[idx] += Device.fTimeDelta * grass_shader_data.speed[idx];
 
@@ -462,17 +455,14 @@ void IGame_Persistent::GrassBendersUpdateAnimations()
                     grass_shader_data.pos[idx].w = 0.0f;
                     grass_shader_data.time[idx] = 0.0f;
                 }
-
                 break;
             }
-
-            case BENDER_ANIM_DEFAULT: {
+            case BENDER_ANIM_DEFAULT: 
+			{
                 // Just fade to target strength
                 grass_shader_data.dir[idx].w += GrassBenderToValue(grass_shader_data.dir[idx].w, grass_shader_data.str_target[idx], 2.0f, true);
-
                 break;
             }
-
             }
         }
     }
@@ -655,5 +645,3 @@ void IGame_Persistent::UpdateRainGloss() const
     const float waterfall_size = std::max(2.0f - ssfx_default_settings.waterfall_size, 0.01f); // Change how the value works to be more intuitive(<1.0 smaller |> 1.0 bigger)
     ps_ssfx_wetsurfaces_2.set(waterfall_size, ssfx_default_settings.waterfall_speed, ssfx_default_settings.waterfall_min_speed, ssfx_default_settings.waterfall_intensity);
 }
-
-void IGame_Persistent::OnAssetsChanged() { Device.m_pRender->OnAssetsChanged(); }
