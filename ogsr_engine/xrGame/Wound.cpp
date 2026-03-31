@@ -34,6 +34,7 @@ void CWound::save(NET_Packet& output_packet)
     for (int i = 0; i < ALife::eHitTypeMax; i++)
         output_packet.w_float_q8(m_Wounds[i], 0.f, WOUND_MAX);
 }
+
 void CWound::load(IReader& input_packet)
 {
     m_iBoneNum = (u8)input_packet.r_u8();
@@ -83,8 +84,26 @@ void CWound::Incarnation(float percent, float min_wound_size)
     //заживить все раны пропорционально их размеру
     for (int i = 0; i < ALife::eHitTypeMax; i++)
     {
-        m_Wounds[i] -= percent /* *m_Wounds[i]*/;
+        m_Wounds[i] -= percent;
         if (m_Wounds[i] < min_wound_size)
             m_Wounds[i] = 0;
     }
 }
+
+using namespace luabind;
+
+void CWound::script_register(lua_State* L)
+{
+    module(L)[class_<CWound>("CWound")
+                  .def("TypeSize", &CWound::TypeSize)
+                  .def("BloodSize", &CWound::BloodSize)
+                  .def("AddHit", &CWound::AddHit)
+                  .def("Incarnation", &CWound::Incarnation)
+                  .def("TotalSize", &CWound::TotalSize)
+                  .def("SetBoneNum", &CWound::SetBoneNum)
+                  .def("GetBoneNum", &CWound::GetBoneNum)
+                  .def("GetParticleBoneNum", &CWound::GetParticleBoneNum)
+                  .def("SetParticleBoneNum", &CWound::SetParticleBoneNum)
+                  .def("SetDestroy", &CWound::SetDestroy)
+                  .def("GetDestroy", &CWound::GetDestroy)];
+};

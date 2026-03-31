@@ -55,4 +55,7 @@ protected:
     HitImmunity::HitTypeSVec m_Wounds;
 
     bool m_bToBeDestroy;
+
+public:
+    static void script_register(lua_State* L);
 };

@@ -14,6 +14,8 @@
 #include "searchlight.h"
 #include "hit_immunity.h"
 #include "EntityCondition.h"
+#include "ActorCondition.h"
+#include "Wound.h"
 
 using namespace luabind;
 
@@ -117,4 +119,6 @@ void CScriptGameObject::script_register(lua_State* L)
     script_register_game_object4(L);
     CHitImmunity::script_register(L);
     CEntityCondition::script_register(L);
+    CActorCondition::script_register(L);
+    CWound::script_register(L);
 }

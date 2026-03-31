@@ -67,7 +67,7 @@ struct SBooster
     float fBoostTime;
     float fBoostValue;
     EBoostParams m_type;
-    SBooster() :fBoostTime(-1.0f) {};
+    SBooster() : fBoostTime(-1.0f), fBoostValue(0.0f), m_type() {};
     void Load(const shared_str& sect, EBoostParams type);
 };
 
@@ -85,7 +85,7 @@ struct SMedicineInfluenceValues
     float fTimeTotal;
     float fTimeCurrent;
 
-    SMedicineInfluenceValues() :fTimeCurrent(-1.0f) {}
+    SMedicineInfluenceValues() : fTimeCurrent(-1.0f) {}
     bool InProcess() { return fTimeCurrent > 0.0f; }
     void Load(const shared_str& sect);
 };
@@ -125,6 +125,11 @@ public:
     virtual void load(IReader& input_packet);
 
     IC float GetPower() const { return m_fPower; }
+    IC void SetPower(float value)
+    {
+        m_fPower = value;
+        clamp(m_fPower, 0.f, m_fPowerMax);
+    }
     IC float GetRadiation() const { return m_fRadiation; }
     IC float GetPsyHealth() const { return m_fPsyHealth; }
     IC float GetEntityMorale() const { return m_fEntityMorale; }

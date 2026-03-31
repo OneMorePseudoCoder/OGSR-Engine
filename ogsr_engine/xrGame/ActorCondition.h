@@ -196,4 +196,5 @@ public:
             monsters_aura_radius = r;
     };
     ref_sound m_use_sound;
+    static void script_register(lua_State* L);
 };

@@ -11,7 +11,6 @@
 #include "script_callback_ex.h"
 #include "script_game_object.h"
 #include "game_object_space.h"
-#include "script_callback_ex.h"
 #include "object_broker.h"
 #include "weapon.h"
 #include "PDA.h"
@@ -993,5 +992,54 @@ void CActorCondition::net_Relcase(CObject* O)
 {
     if (Level().is_removing_objects())
         return;
+
     monsters_feel_touch->feel_touch_relcase(O);
 }
+
+using namespace luabind;
+
+void CActorCondition::script_register(lua_State* L)
+{
+    module(L)
+    [
+        class_<SBooster>("SBooster")
+            .def(constructor<>())
+            .def_readwrite("fBoostTime", &SBooster::fBoostTime)
+            .def_readwrite("fBoostValue", &SBooster::fBoostValue)
+            .def_readwrite("m_type", &SBooster::m_type),
+
+        class_<CActorCondition, CEntityCondition>("CActorCondition")
+            .def("ClearAllBoosters", &CActorCondition::ClearAllBoosters)
+            .def("ApplyBooster", &CActorCondition::ApplyBooster_script)
+            .def("BoosterForEach", &CActorCondition::BoosterForEach)
+            .def("WoundForEach", &CActorCondition::WoundForEach)
+            .def("GetSatiety", &CActorCondition::GetSatiety)
+            .def("BoostMaxWeight", &CActorCondition::BoostMaxWeight)
+            .def("BoostHpRestore", &CActorCondition::BoostHpRestore)
+            .def("BoostPowerRestore", &CActorCondition::BoostPowerRestore)
+            .def("BoostRadiationRestore", &CActorCondition::BoostRadiationRestore)
+            .def("BoostBleedingRestore", &CActorCondition::BoostBleedingRestore)
+            .def("BoostBurnImmunity", &CActorCondition::BoostBurnImmunity)
+            .def("BoostShockImmunity", &CActorCondition::BoostShockImmunity)
+            .def("BoostRadiationImmunity", &CActorCondition::BoostRadiationImmunity)
+            .def("BoostTelepaticImmunity", &CActorCondition::BoostTelepaticImmunity)
+            .def("BoostChemicalBurnImmunity", &CActorCondition::BoostChemicalBurnImmunity)
+            .def("BoostExplImmunity", &CActorCondition::BoostExplImmunity)
+            .def("BoostStrikeImmunity", &CActorCondition::BoostStrikeImmunity)
+            .def("BoostFireWoundImmunity", &CActorCondition::BoostFireWoundImmunity)
+            .def("BoostWoundImmunity", &CActorCondition::BoostWoundImmunity)
+            .def("BoostRadiationProtection", &CActorCondition::BoostRadiationProtection)
+            .def("BoostTelepaticProtection", &CActorCondition::BoostTelepaticProtection)
+            .def("BoostChemicalBurnProtection", &CActorCondition::BoostChemicalBurnProtection)
+            .def("BoostSatietyRestore", &CActorCondition::BoostSatietyRestore)
+            .def("BoostThirstRestore", &CActorCondition::BoostThirstRestore)
+            .def("BoostPsyHealthRestore", &CActorCondition::BoostPsyHealthRestore)
+            .def("BoostAlcoholRestore", &CActorCondition::BoostAlcoholRestore)
+            .def("BoostTimeFactor", &CActorCondition::BoostTimeFactor)
+            .def("IsLimping", &CActorCondition::IsLimping)
+            .def("IsCantWalk", &CActorCondition::IsCantWalk)
+            .def("IsCantWalkWeight", &CActorCondition::IsCantWalkWeight)
+            .def("IsCantSprint", &CActorCondition::IsCantSprint)
+            .def_readwrite("m_MaxWalkWeight", &CActorCondition::m_MaxWalkWeight)
+    ];
+};

@@ -217,35 +217,32 @@ void CEntityCondition::UpdateCondition()
 {
     if (GetHealth() <= 0)
         return;
-    //-----------------------------------------
+
     bool CriticalHealth = false;
 
     if (m_fDeltaHealth + GetHealth() <= 0)
     {
         CriticalHealth = true;
     }
-    //-----------------------------------------
+
     UpdateHealth();
-    //-----------------------------------------
+
     if (!CriticalHealth && m_fDeltaHealth + GetHealth() <= 0)
     {
         CriticalHealth = true;
     };
-    //-----------------------------------------
+
     UpdatePower();
     UpdateRadiation();
-    //-----------------------------------------
+
     if (!CriticalHealth && m_fDeltaHealth + GetHealth() <= 0)
     {
         CriticalHealth = true;
     };
-    //-----------------------------------------
+
     UpdatePsyHealth();
 
     UpdateEntityMorale();
-
-    //if (m_object && m_object->ID() == 0)
-    //    clamp(m_fDeltaHealth, -0.8f, 1.0f);
 
     health() += m_fDeltaHealth;
 
@@ -300,20 +297,11 @@ float CEntityCondition::HitPowerEffect(float power_loss)
     if (!pOutfit)
         return power_loss;
 
-    float new_power_loss = power_loss * pOutfit->GetPowerLoss();
-
-    return new_power_loss;
+    return power_loss * pOutfit->GetPowerLoss();
 }
 
 CWound* CEntityCondition::AddWound(float hit_power, ALife::EHitType hit_type, u16 element)
 {
-    /*
-        if ( element == BI_NONE ) {
-          Msg( "! [%s]: %s: BI_NONE -> 0", __FUNCTION__, m_object->cName().c_str() );
-          element = 0;
-        }
-    */
-
     //максимальное число косточек 64
     VERIFY(element < 64 || BI_NONE == element);
 
@@ -457,7 +445,6 @@ void CEntityCondition::UpdateRadiation(float k)
     if (m_fRadiation > 0)
     {
         m_fDeltaRadiation -= m_change_v.m_fV_Radiation * k * m_fDeltaTime;
-
         m_fDeltaHealth -= CanBeHarmed() ? m_change_v.m_fV_RadiationHealth * m_fRadiation * m_fDeltaTime : 0.0f;
     }
 }
@@ -563,7 +550,7 @@ bool CEntityCondition::ApplyInfluence(const SMedicineInfluenceValues& V, const s
     ChangeSatiety(V.fSatiety);
     ChangeRadiation(V.fRadiation);
     ChangeBleeding(V.fWoundsHeal);
-    SetMaxPower(GetMaxPower()+V.fMaxPowerUp);
+    SetMaxPower(GetMaxPower() + V.fMaxPowerUp);
     ChangeAlcohol(V.fAlcohol);
     ChangeThirst(V.fThirst);
     ChangePsyHealth(V.fPsyHealth);
@@ -643,6 +630,27 @@ void CEntityCondition::script_register(lua_State* L)
                   .def_readonly("a_velocity", &CEntity::SEntityState::fAVelocity)
               ,
               class_<CEntityCondition>("CEntityCondition")
+                  .def("AddWound", &CEntityCondition::AddWound)
+                  .def("ClearWounds", &CEntityCondition::ClearWounds)
+                  .def("GetWhoHitLastTimeID", &CEntityCondition::GetWhoHitLastTimeID)
+                  .def("GetPower", &CEntityCondition::GetPower)
+                  .def("SetPower", &CEntityCondition::SetPower)
+                  .def("GetRadiation", &CEntityCondition::GetRadiation)
+                  .def("GetPsyHealth", &CEntityCondition::GetPsyHealth)
+                  .def("GetSatiety", &CEntityCondition::GetSatiety)
+                  .def("GetEntityMorale", &CEntityCondition::GetEntityMorale)
+                  .def("GetHealthLost", &CEntityCondition::GetHealthLost)
+                  .def("ChangeSatiety", &CEntityCondition::ChangeSatiety)
+                  .def("ChangeHealth", &CEntityCondition::ChangeHealth)
+                  .def("ChangePower", &CEntityCondition::ChangePower)
+                  .def("ChangeRadiation", &CEntityCondition::ChangeRadiation)
+                  .def("ChangePsyHealth", &CEntityCondition::ChangePsyHealth)
+                  .def("ChangeAlcohol", &CEntityCondition::ChangeAlcohol)
+                  .def("SetMaxPower", &CEntityCondition::SetMaxPower)
+                  .def("GetMaxPower", &CEntityCondition::GetMaxPower)
+                  .def("ChangeEntityMorale", &CEntityCondition::ChangeEntityMorale)
+                  .def("ChangeBleeding", &CEntityCondition::ChangeBleeding)
+                  .def("BleedingSpeed", &CEntityCondition::BleedingSpeed)
                   .def("fdelta_time", &CEntityCondition::fdelta_time)
                   .def_readonly("has_valid_time", &CEntityCondition::m_bTimeValid)
                   .def_readwrite("power", &CEntityCondition::m_fPower)
@@ -658,5 +666,31 @@ void CEntityCondition::script_register(lua_State* L)
                   .def_readwrite("power_hit_part", &CEntityCondition::m_fPowerHitPart)				
                   .property("health", &CEntityCondition::GetHealth, &set_entity_health)
                   .property("max_health", &CEntityCondition::GetMaxHealth, &set_entity_max_health)
+                  .enum_("EBoostParams")
+                  [
+                        value("eBoostHpRestore", int(EBoostParams::eBoostHpRestore)),
+                        value("eBoostPowerRestore", int(EBoostParams::eBoostPowerRestore)),
+                        value("eBoostRadiationRestore", int(EBoostParams::eBoostRadiationRestore)),
+                        value("eBoostBleedingRestore", int(EBoostParams::eBoostBleedingRestore)),
+                        value("eBoostMaxWeight", int(EBoostParams::eBoostMaxWeight)),
+                        value("eBoostRadiationProtection", int(EBoostParams::eBoostRadiationProtection)),
+                        value("eBoostTelepaticProtection", int(EBoostParams::eBoostTelepaticProtection)),
+                        value("eBoostChemicalBurnProtection", int(EBoostParams::eBoostChemicalBurnProtection)),
+                        value("eBoostBurnImmunity", int(EBoostParams::eBoostBurnImmunity)),
+                        value("eBoostShockImmunity", int(EBoostParams::eBoostShockImmunity)),
+                        value("eBoostRadiationImmunity", int(EBoostParams::eBoostRadiationImmunity)),
+                        value("eBoostTelepaticImmunity", int(EBoostParams::eBoostTelepaticImmunity)),
+                        value("eBoostChemicalBurnImmunity", int(EBoostParams::eBoostChemicalBurnImmunity)),
+                        value("eBoostExplImmunity", int(EBoostParams::eBoostExplImmunity)),
+                        value("eBoostStrikeImmunity", int(EBoostParams::eBoostStrikeImmunity)),
+                        value("eBoostFireWoundImmunity", int(EBoostParams::eBoostFireWoundImmunity)),
+                        value("eBoostWoundImmunity", int(EBoostParams::eBoostWoundImmunity)),
+
+                        value("eBoostSatietyRestore", int(EBoostParams::eBoostSatietyRestore)),
+                        value("eBoostThirstRestore", int(EBoostParams::eBoostThirstRestore)),
+                        value("eBoostPsyHealthRestore", int(EBoostParams::eBoostPsyHealthRestore)),
+                        value("eBoostAlcoholRestore", int(EBoostParams::eBoostAlcoholRestore)),
+                        value("eBoostTimeFactor", int(EBoostParams::eBoostTimeFactor))
+                  ]
     ];
 }
