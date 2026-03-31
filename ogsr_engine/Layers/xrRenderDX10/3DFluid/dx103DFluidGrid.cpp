@@ -67,7 +67,7 @@ void dx103DFluidGrid::CreateVertexBuffers()
         {0, 12, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0}, D3DDECL_END()
     };
 
-    const u32 vSize = FVF::ComputeVertexSize(layoutDesc, 0);
+    constexpr u32 vSize = FVF::ComputeVertexSize(layoutDesc, 0);
 
     int index = 0;
     VS_INPUT_FLUIDSIM_STRUCT* renderQuad = nullptr;

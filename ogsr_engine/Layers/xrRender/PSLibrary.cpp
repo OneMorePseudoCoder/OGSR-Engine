@@ -2,6 +2,7 @@
 #include "PSLibrary.h"
 #include "ParticleEffect.h"
 #include "ParticleGroup.h"
+#include "..\xr_3da\x_ray.h"
 
 void CPSLibrary::OnCreate() { LoadAll(); }
 
@@ -70,10 +71,11 @@ bool CPSLibrary::Load(const char* nm)
 
     bool bRes = true;
     size_t loaded_count{};
-    const bool copFileFormat = strstr(nm, "_cop");
+
+    const bool copFileFormat{CApplication::CheckCsCopMode() || strstr(nm, "_cop")};
 
     if (copFileFormat)
-        Msg("cop format used for file [%s]", nm);
+        Msg("~~[%s] cs/cop format used for file [%s]", __FUNCTION__, nm);
 
     // second generation
     IReader* OBJ;

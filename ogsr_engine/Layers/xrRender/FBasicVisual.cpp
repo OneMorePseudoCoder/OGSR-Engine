@@ -146,7 +146,7 @@ void dxRender_Visual::Load(const char* N, IReader* data, u32)
     }
     else
     {
-        FATAL("Invalid visual");
+        FATAL("Invalid visual: [%s]", N);
     }
 
     // Shader
@@ -189,4 +189,15 @@ void dxRender_Visual::MarkAsHot(bool is_hot)
         return;
     CTexture* t = l->at(0).second._get();
     t->m_is_hot = is_hot;
+}
+
+const ShaderElement::Sflags& dxRender_Visual::GetShaderFlags(const size_t idx) const
+{
+    const Shader* s = shader._get();
+    if (nullptr == s)
+        return {};
+    ShaderElement* e = s->E[idx]._get();
+    if (nullptr == e /*|| e->passes.empty()*/)
+        return {};
+    return e->flags;
 }

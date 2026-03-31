@@ -40,7 +40,7 @@ void render_rain::init()
         return;
 
     o.mt_calc_enabled = ps_r2_ls_flags.test(R2FLAG_EXP_MT_RAIN);
-    o.mt_draw_enabled = ps_r2_ls_flags.test(R2FLAG_EXP_MT_RAIN);
+    o.mt_draw_enabled = ps_r2_ls_flags.test(R2FLAG_EXP_MT_RAIN_DRAW);
 
     // pre-allocate context
     context_id = RImplementation.alloc_context();

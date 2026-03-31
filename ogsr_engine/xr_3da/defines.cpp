@@ -8,4 +8,4 @@ ECORE_API BOOL bDebug = FALSE;
 u32 psCurrentVidMode[2] = {1024, 768};
 
 // release version always has "mt_*" enabled
-Flags32 psDeviceFlags = {rsDetails | rsExclusiveMode};
+Flags32 psDeviceFlags{rsDetails | rsExclusiveMode | rsAlwaysActive | rs_SSFX_HUD_RAINDROPS};

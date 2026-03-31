@@ -99,7 +99,7 @@ public:
 public:
     virtual float get_luminocity() = 0;
     virtual float get_luminocity_hemi() = 0;
-    virtual float* get_luminocity_hemi_cube() = 0;
+    virtual const float* get_luminocity_hemi_cube() = 0;
 
     virtual ~IRender_ObjectSpecific(){};
 };
@@ -148,7 +148,6 @@ public:
 public:
     // options
     bool hud_loading{};
-    //bool HAT{};
     s32 m_skinning;
     u32 m_SMAPSize;
 
@@ -300,6 +299,7 @@ class ShExports final
 
     // [fFPCamYawMagnitudeSmooth, fFPCamPitchMagnitudeSmooth, fFPCamRollMagnitudeSmooth, NULL]
     Fvector4 cam_inertia_smooth{};
+    float pda_screen_vision{};
 
 public:
     xr_map<shared_str, Fvector4> customExports{};
@@ -333,6 +333,9 @@ public:
 
     void set_hud_params(const Fvector4& v) { hud_params = v; };
     void set_cam_inertia_smooth(const Fvector4& v) { cam_inertia_smooth = v; };
+
+    const float& get_pda_screen_vision() const { return pda_screen_vision; }
+    void set_pda_screen_vision(const float& val) { pda_screen_vision = val; };
 };
 
 ENGINE_API extern ShExports shader_exports;

@@ -4,15 +4,12 @@
 #include "xr_object.h"
 #include "xr_area.h"
 #include "render.h"
-#include "xrLevel.h"
 
 #include "../Include/xrRender/RenderVisual.h"
 #include "../Include/xrRender/Kinematics.h"
 
 #include "x_ray.h"
 #include "GameFont.h"
-
-void CObject::MakeMeCrow_internal() { g_pGameLevel->Objects.o_crow(this); }
 
 void CObject::cName_set(shared_str N) { NameObject = N; }
 void CObject::cNameSect_set(shared_str N)
@@ -127,9 +124,11 @@ const Fbox& CObject::BoundingBox() const
 //----------------------------------------------------------------------
 CObject::CObject() : ISpatial(g_SpatialSpace)
 {
+#pragma todo("Simp: вроде б JR говорил пересмотреть это")
     spatial.type |= STYPE_COLLIDEABLE;
     spatial.type |= STYPE_RENDERABLE;
 
+    dwFrame_AsCrow = (u32)-1;
     spatial.dbg_name = "object";
 
     // Transform
@@ -307,7 +306,7 @@ void CObject::UpdateCL()
     spatial_update(base_spu_epsP * 5, base_spu_epsR * 5);
 
     // crow
-    if (Parent == g_pGameLevel->CurrentViewEntity())
+    if (Parent == g_pGameLevel->CurrentEntity())
         MakeMeCrow();
     else if (AlwaysTheCrow())
         MakeMeCrow();
@@ -340,6 +339,8 @@ void CObject::spatial_register()
     ISpatial::spatial_register();
 }
 
+void CObject::spatial_unregister() { ISpatial::spatial_unregister(); }
+
 void CObject::spatial_move()
 {
     Center(spatial.sphere.P);
@@ -355,8 +356,7 @@ CObject::SavedPosition CObject::ps_Element(u32 ID) const
 
 void CObject::renderable_Render(u32 /*context_id*/, IRenderable* /*root*/)
 {
-    if (Device.OnMainThread() || TTAPI->on_pool_thread()) // hack to avoid issues with sun render
-        MakeMeCrow();
+    MakeMeCrow();
 }
 
 CObject* CObject::H_SetParent(CObject* new_parent, bool just_before_destroy)
@@ -401,7 +401,8 @@ void CObject::MakeMeCrow()
     if (!processing_enabled())
         return;
     Props.crow = true;
-    MakeMeCrow_internal();
+
+    g_pGameLevel->Objects.o_crow(this); // MakeMeCrow_internal();
 }
 
 void CObject::setDestroy(BOOL _destroy)

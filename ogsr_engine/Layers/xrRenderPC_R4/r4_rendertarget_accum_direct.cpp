@@ -39,9 +39,6 @@ void CRenderTarget::accum_direct_cascade(CBackend& cmd_list, u32 sub_phase, Fmat
     // Choose normal code-path or filtered
     phase_accumulator(cmd_list);
 
-    //	choose correct element for the sun shader
-    u32 uiElementIndex = sub_phase;
-
     //	TODO: DX10: Remove half pixe offset
     // *** assume accumulator setted up ***
     light* fuckingsun = smart_cast<light*>(RImplementation.Lights.sun_adapted._get());
@@ -184,7 +181,7 @@ void CRenderTarget::accum_direct_cascade(CBackend& cmd_list, u32 sub_phase, Fmat
         cmd_list.set_Geometry(g_combine_cuboid);
 
         // setup
-        cmd_list.set_Element(s_accum_direct->E[uiElementIndex]);
+        cmd_list.set_Element(s_accum_sun_cascade[sub_phase]->E[0]);
         cmd_list.set_c("m_texgen", m_Texgen);
         cmd_list.set_c("Ldynamic_dir", L_dir.x, L_dir.y, L_dir.z, 0);
         cmd_list.set_c("Ldynamic_color", L_clr.x, L_clr.y, L_clr.z, L_spec);

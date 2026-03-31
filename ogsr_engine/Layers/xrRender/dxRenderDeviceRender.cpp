@@ -95,8 +95,7 @@ void dxRenderDeviceRender::SetupStates()
 {
     HW.Caps.Update();
 
-    SSManager.SetMaxAnisotropy(ps_r__tf_Anisotropic);
-    SSManager.SetMipLODBias(ps_r__tf_Mipbias);
+    SSManager.SetParams(ps_r__tf_Anisotropic, ps_r__tf_Mipbias);
 }
 
 void dxRenderDeviceRender::Create(HWND hWnd, u32& dwWidth, u32& dwHeight, float& fWidth_2, float& fHeight_2)

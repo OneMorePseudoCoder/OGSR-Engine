@@ -145,7 +145,11 @@ public:
     void Update(const Fvector& P, const Fvector& D, const Fvector& N, float fFOV_Dest, float fASPECT_Dest, float fFAR_Dest, u32 flags);
 
     void UpdateFromCamera(const CCameraBase* C);
+
     void ApplyDevice(bool effectOnly = false);
+    template<typename T> //чтобы передача в ApplyDevice чисел и всего кроме bool выдавала ошибку сборки
+    void ApplyDevice(T) = delete;
+
     static void ResetPP();
 
     CCameraManager(bool bApplyOnUpdate);
