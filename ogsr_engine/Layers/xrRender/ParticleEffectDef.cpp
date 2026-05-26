@@ -56,7 +56,7 @@ void CPEDef::CreateShader()
 void CPEDef::DestroyShader() { m_CachedShader.destroy(); }
 void CPEDef::SetName(LPCSTR name) { m_Name = name; }
 
-void CPEDef::ExecuteAnimate(Particle* particles, u32 p_cnt, float dt)
+void CPEDef::ExecuteAnimate(Particle* particles, u32 p_cnt, float dt) const
 {
     const float speedFac = m_Frame.m_fSpeed * dt;
     for (u32 i = 0; i < p_cnt; i++)
@@ -71,9 +71,9 @@ void CPEDef::ExecuteAnimate(Particle* particles, u32 p_cnt, float dt)
     }
 }
 
-void CPEDef::ExecuteCollision(PAPI::Particle* particles, u32 p_cnt, float dt, CParticleEffect* owner, CollisionCallback cb)
+void CPEDef::ExecuteCollision(PAPI::Particle* particles, u32 p_cnt, float dt, CParticleEffect* owner) const
 {
-    pVector pt, n;
+    pVector pt{}, n{};
     // Must traverse list in reverse order so Remove will work
     for (int i = p_cnt - 1; i >= 0; i--)
     {
@@ -108,9 +108,7 @@ void CPEDef::ExecuteCollision(PAPI::Particle* particles, u32 p_cnt, float dt, CP
                     }
 
                     pick_cnt++;
-                    if (cb && (pick_cnt == 1))
-                        if (!cb(owner, m, pt, n))
-                            break;
+
                     if (m_Flags.is(dfCollisionDel))
                     {
                         ParticleManager()->RemoveParticle(owner->m_HandleEffect, i);
