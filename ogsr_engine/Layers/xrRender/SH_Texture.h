@@ -70,6 +70,8 @@ public:
     void video_Stop();
     BOOL video_IsPlaying();
 
+    ID3DShaderResourceView* get_SRView() const { return m_pSRView; }
+
 private:
 
     void Apply(CBackend& cmd_list, u32 dwStage) const;
@@ -89,7 +91,8 @@ public: //	Public class members (must be encapsulated furthur)
         u32 bLoaded : 1;
         u32 seqCycles : 1;
         u32 memUsage : 28;
-    } flags;
+    } 
+	flags;
 
     fastdelegate::FastDelegate<void(CBackend&, u32)> bind;
 

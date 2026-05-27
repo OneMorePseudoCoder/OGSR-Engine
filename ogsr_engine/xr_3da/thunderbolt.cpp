@@ -45,8 +45,9 @@ void SThunderboltDesc::load(CInifile& pIni, shared_str const& sect)
     create_center_gradient(pIni, sect);
 
     name = sect;
-    color_anim = LALib.FindItem(pIni.r_string(sect, "color_anim"));
-    VERIFY(color_anim);
+    const char* anim_name = pIni.r_string(sect, "color_anim");
+    color_anim = LALib.FindItem(anim_name);
+    ASSERT_FMT(color_anim, "!![%s] color_anim [%s] not found!", __FUNCTION__, anim_name);
     color_anim->fFPS = (float)color_anim->iFrameCount;
 
     // models
