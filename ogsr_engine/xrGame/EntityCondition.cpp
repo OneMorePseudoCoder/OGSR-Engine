@@ -621,7 +621,9 @@ bool get_entity_sprint(CEntity::SEntityState* S) { return S->bSprint; }
 
 void CEntityCondition::script_register(lua_State* L)
 {
-    module(L)[(class_<CEntity::SEntityState>("SEntityState")
+    module(L)
+    [
+             (class_<CEntity::SEntityState>("SEntityState")
                   .property("crouch", &get_entity_crouch)
                   .property("fall", &get_entity_fall)
                   .property("jump", &get_entity_jump)
@@ -666,9 +668,9 @@ void CEntityCondition::script_register(lua_State* L)
                   .def_readwrite("power_hit_part", &CEntityCondition::m_fPowerHitPart)				
                   .property("health", &CEntityCondition::GetHealth, &set_entity_health)
                   .property("max_health", &CEntityCondition::GetMaxHealth, &set_entity_max_health)
-
+                   
                   .enum_("EBoostParams")
-                  [
+                  [(
                         value("eBoostHpRestore", int(EBoostParams::eBoostHpRestore)),
                         value("eBoostPowerRestore", int(EBoostParams::eBoostPowerRestore)),
                         value("eBoostRadiationRestore", int(EBoostParams::eBoostRadiationRestore)),
@@ -692,6 +694,6 @@ void CEntityCondition::script_register(lua_State* L)
                         value("eBoostPsyHealthRestore", int(EBoostParams::eBoostPsyHealthRestore)),
                         value("eBoostAlcoholRestore", int(EBoostParams::eBoostAlcoholRestore)),
                         value("eBoostTimeFactor", int(EBoostParams::eBoostTimeFactor))
-                  ]
+                )]
     )];
 }

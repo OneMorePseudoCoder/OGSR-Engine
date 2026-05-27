@@ -1001,7 +1001,7 @@ using namespace luabind;
 void CActorCondition::script_register(lua_State* L)
 {
     module(L)
-    [
+    [(
         class_<SBooster>("SBooster")
             .def(constructor<>())
             .def_readwrite("fBoostTime", &SBooster::fBoostTime)
@@ -1041,5 +1041,5 @@ void CActorCondition::script_register(lua_State* L)
             .def("IsCantWalkWeight", &CActorCondition::IsCantWalkWeight)
             .def("IsCantSprint", &CActorCondition::IsCantSprint)
             .def_readwrite("m_MaxWalkWeight", &CActorCondition::m_MaxWalkWeight)
-    ];
+    )];
 };
